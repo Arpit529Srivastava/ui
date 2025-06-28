@@ -12,6 +12,8 @@
 
 > Check out the main [KubeStellar project](https://github.com/kubestellar/kubestellar)
 
+<!-- Test changeset integration - This comment was added to test the automated changeset system -->
+
 # KubestellarUI Setup Guide
 
 Welcome to **KubestellarUI**! This guide will help you set up the KubestellarUI application on your local machine after cloning the repository for development. The application consists of two main parts:
