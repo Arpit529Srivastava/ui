@@ -138,7 +138,6 @@ backend/secret.yml
 backend/backend
 backend/vendor/
 
-
 # history  file
 .history/
 
@@ -147,3 +146,6 @@ db.json
 
 #Personal text file
 ExtraCode.md
+
+# Changeset temporary files
+.changeset/.temp/
