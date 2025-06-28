@@ -149,4 +149,7 @@ const commentWorkflow = async (pullRequest, github, changesetContents) => {
   }
 };
 
-export { getChangesetContents, commentWorkflow };
+export {
+  getChangesetContents,
+  commentWorkflow,
+};
