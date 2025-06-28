@@ -11,36 +11,40 @@ const getFormattedCommits = async (pullRequest, github) => {
   const commits = await github.paginate(commitOpts);
 
   // Filter merge commits and bot commits
-  const filteredCommits = commits.filter((commit) => {
-    return !commit.commit.message.startsWith('Merge pull request') && 
-           !commit.commit.message.startsWith('Merge branch') && 
-           !commit.commit.author.name.startsWith('kubestellar-bot') && 
-           !commit.commit.author.name.startsWith('dependabot[bot]');
+  const filteredCommits = commits.filter(commit => {
+    return (
+      !commit.commit.message.startsWith('Merge pull request') &&
+      !commit.commit.message.startsWith('Merge branch') &&
+      !commit.commit.author.name.startsWith('kubestellar-bot') &&
+      !commit.commit.author.name.startsWith('dependabot[bot]')
+    );
   });
 
-  return filteredCommits.map((commit) => {
+  return filteredCommits.map(commit => {
     return {
       commit_sha: commit.sha.slice(0, 7),
       commit_message: commit.commit.message,
     };
   });
-}
+};
 
 const getReleasedPackages = async (pullRequest, github) => {
-  const files = await github.paginate(github.rest.pulls.listFiles.endpoint.merge({
-    owner: pullRequest.base.repo.owner.login,
-    repo: pullRequest.base.repo.name,
-    pull_number: pullRequest.number,
-  }));
+  const files = await github.paginate(
+    github.rest.pulls.listFiles.endpoint.merge({
+      owner: pullRequest.base.repo.owner.login,
+      repo: pullRequest.base.repo.name,
+      pull_number: pullRequest.number,
+    })
+  );
 
   const releasedPackages = [];
   const ignoredFiles = [
-    'README.md', 
-    'CHANGELOG.md', 
-    './changeset/README.md', 
-    'package.json', 
-    'package-lock.json', 
-    'yarn.lock', 
+    'README.md',
+    'CHANGELOG.md',
+    './changeset/README.md',
+    'package.json',
+    'package-lock.json',
+    'yarn.lock',
     'pnpm-lock.yaml',
     'docs/**',
     '*.md',
@@ -74,9 +78,9 @@ const getReleasedPackages = async (pullRequest, github) => {
     'src/components/BindingPolicy/nodes/**',
     'src/components/Workloads/AirtfactTab/**',
     'src/components/Workloads/GitHubTab/**',
-    'src/components/Workloads/HelmTab/**'
+    'src/components/Workloads/HelmTab/**',
   ];
-  
+
   for (const file of files) {
     if (!ignoredFiles.some(ignored => file.filename.includes(ignored.replace('**', '')))) {
       const cwd = path.resolve(path.dirname(file.filename));
@@ -84,7 +88,7 @@ const getReleasedPackages = async (pullRequest, github) => {
       if (pack && pack?.packageJson?.name && !releasedPackages.includes(pack.packageJson.name)) {
         releasedPackages.push(pack.packageJson.name);
       }
-    } 
+    }
   }
 
   // If no packages found, default to kubestellarui
@@ -93,22 +97,27 @@ const getReleasedPackages = async (pullRequest, github) => {
   }
 
   return releasedPackages;
-}
+};
 
 const getReleaseNotes = async (pullRequest, github) => {
   const commits = await getFormattedCommits(pullRequest, github);
-  const releaseNotes = pullRequest.title + '\n\n' + commits.map((commit) => {
-    return `- ${commit.commit_sha}: ${commit.commit_message}`;
-  }).join('\n');
+  const releaseNotes =
+    pullRequest.title +
+    '\n\n' +
+    commits
+      .map(commit => {
+        return `- ${commit.commit_sha}: ${commit.commit_message}`;
+      })
+      .join('\n');
 
   return releaseNotes;
-}
+};
 
 const getChangesetContents = async (pullRequest, github) => {
   const title = pullRequest.title;
   const releaseType = title.split(':')[0];
   let releaseVersion = 'patch';
-  
+
   switch (releaseType) {
     case 'fix':
       releaseVersion = 'patch';
@@ -138,9 +147,14 @@ const getChangesetContents = async (pullRequest, github) => {
     return '';
   }
 
-  const changesetContents = `---\n` + releasedPackages.map((pkg) => {
-    return `'${pkg}': ${releaseVersion}`;
-  }).join('\n') + `\n---\n\n${releaseNotes}\n\n`
+  const changesetContents =
+    `---\n` +
+    releasedPackages
+      .map(pkg => {
+        return `'${pkg}': ${releaseVersion}`;
+      })
+      .join('\n') +
+    `\n---\n\n${releaseNotes}\n\n`;
 
   return changesetContents;
 };
@@ -154,8 +168,12 @@ const commentWorkflow = async (pullRequest, github, changesetContents) => {
     issue_number: pullRequest.number,
   });
 
-  const comment = comments.data.find((comment) => comment.body.includes('Changeset has been generated for this PR as part of auto-changeset workflow.'));
-  
+  const comment = comments.data.find(comment =>
+    comment.body.includes(
+      'Changeset has been generated for this PR as part of auto-changeset workflow.'
+    )
+  );
+
   if (comment) {
     await github.rest.issues.updateComment({
       owner: pullRequest.base.repo.owner.login,
@@ -172,9 +190,9 @@ const commentWorkflow = async (pullRequest, github, changesetContents) => {
       user: 'kubestellar-bot',
     });
   }
-}
+};
 
 module.exports = {
   getChangesetContents,
   commentWorkflow,
-}; 
+};
