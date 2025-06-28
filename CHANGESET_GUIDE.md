@@ -5,6 +5,7 @@ This guide explains how to use the **Changeset** system that has been integrated
 ## What is Changeset?
 
 Changeset is a tool for managing versioning and changelogs with a focus on monorepos. It automates the process of:
+
 - Determining version bumps based on conventional commits
 - Generating changelogs
 - Publishing packages
@@ -15,12 +16,14 @@ Changeset is a tool for managing versioning and changelogs with a focus on monor
 ### 1. Automatic Changeset Generation
 
 When you create a Pull Request with a title that starts with:
+
 - `feat:` - Generates a minor version bump
 - `fix:` - Generates a patch version bump
 - `feat!:` - Generates a major version bump (breaking change)
 - `fix!:` - Generates a major version bump (breaking bug fix)
 
 The system will automatically:
+
 1. Analyze your PR commits and files
 2. Generate a changeset file in `.changeset/` directory
 3. Add a comment to your PR with the changeset preview
@@ -29,6 +32,7 @@ The system will automatically:
 ### 2. Release Process
 
 When changes are merged to the `dev` branch:
+
 1. The release workflow runs tests
 2. Processes all changesets
 3. Creates a version bump PR
@@ -54,26 +58,30 @@ When changes are merged to the `dev` branch:
 ### What Happens Next
 
 1. **Auto-Changeset Workflow** will run and:
+
    - Generate a changeset file (e.g., `.changeset/123.md`)
    - Add a comment to your PR with the changeset preview
    - Commit the changeset to your PR branch
 
 2. **Review the Changeset**:
+
    - Check the PR comment for the generated changeset
    - Verify the version bump type (patch/minor/major) is correct
    - Review the release notes
 
 3. **Modify if Needed**:
+
    - Click the link in the PR comment to edit the changeset
    - Or manually edit `.changeset/[PR_NUMBER].md`
    - The changeset format is:
+
      ```markdown
      ---
      'kubestellarui': minor
      ---
-     
+
      feat: Add new cluster management feature
-     
+
      - abc1234: feat: add new cluster management feature
      - def5678: docs: update documentation
      ```
@@ -83,6 +91,7 @@ When changes are merged to the `dev` branch:
 ### Skipping Auto-Changeset
 
 If you don't want auto-changeset to run on your PR:
+
 1. Add the `skip-changeset` label to your PR, OR
 2. Change your PR title to not start with `feat:` or `fix:`
 
@@ -97,6 +106,7 @@ npm run changeset
 ```
 
 This will:
+
 1. Show you what packages have changed
 2. Ask you to select which packages to version
 3. Ask for the version bump type (patch/minor/major)
@@ -145,6 +155,7 @@ chore: maintenance tasks
 ## Configuration Files
 
 ### `.changeset/config.json`
+
 ```json
 {
   "changelog": ["@changesets/changelog-git", { "repo": "kubestellar/ui" }],
@@ -156,6 +167,7 @@ chore: maintenance tasks
 ```
 
 ### Package.json Scripts
+
 ```json
 {
   "scripts": {
@@ -169,14 +181,16 @@ chore: maintenance tasks
 ## GitHub Actions Workflows
 
 ### Auto-Changeset Workflow (`.github/workflows/auto-changeset.yml`)
+
 - **Trigger**: PR events (opened, edited, synchronize, reopened, ready_for_review)
-- **Conditions**: 
+- **Conditions**:
   - Repository starts with 'kubestellar/'
   - PR doesn't have 'skip-changeset' label
   - PR title starts with conventional commit prefixes
 - **Actions**: Generates changeset and comments on PR
 
 ### Release Workflow (`.github/workflows/release-with-changesets.yml`)
+
 - **Trigger**: Push to dev branch
 - **Actions**: Runs tests, processes changesets, creates version bump PR, publishes
 
@@ -192,15 +206,18 @@ Make sure these secrets are configured in your GitHub repository:
 ### Common Issues
 
 1. **Changeset not generated**:
+
    - Check PR title format (must start with `feat:` or `fix:`)
    - Ensure PR doesn't have `skip-changeset` label
    - Check workflow logs in GitHub Actions
 
 2. **No packages detected**:
+
    - Verify package.json exists and has proper name
    - Check if files are in ignored list
 
 3. **Permission errors**:
+
    - Ensure GH_TOKEN has proper permissions
    - Check repository secrets configuration
 
@@ -229,23 +246,27 @@ Make sure these secrets are configured in your GitHub repository:
 ### Creating a New Feature
 
 1. **Create branch**:
+
    ```bash
    git checkout -b feat/new-cluster-feature
    ```
 
 2. **Make changes and commit**:
+
    ```bash
    git add .
    git commit -m "feat: add new cluster management dashboard"
    ```
 
 3. **Push and create PR**:
+
    ```bash
    git push origin feat/new-cluster-feature
    # Create PR with title: "feat: Add new cluster management dashboard"
    ```
 
 4. **Review auto-generated changeset**:
+
    - Check PR comment for changeset preview
    - Verify version bump type (should be minor)
    - Review release notes
@@ -265,4 +286,4 @@ Make sure these secrets are configured in your GitHub repository:
 
 ---
 
-This changeset integration provides a robust, automated version management system that reduces manual work and ensures consistent releases for the KubeStellar UI package. 
+This changeset integration provides a robust, automated version management system that reduces manual work and ensures consistent releases for the KubeStellar UI package.
