@@ -12,7 +12,7 @@ on:
 jobs:
   auto-changeset:
     if: |
-      startsWith(github.repository, 'kubestellar/') &&
+      startsWith(github.repository, 'Arpit529Srivastava/') &&
       (!contains(github.event.pull_request.labels, 'skip-changeset')) &&
       ( startsWith(github.event.pull_request.title, 'fix:') ||
         startsWith(github.event.pull_request.title, 'feat:') ||
