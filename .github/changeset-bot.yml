@@ -1,0 +1,49 @@
+# Changeset Bot Configuration
+# This file configures the Changeset bot behavior
+
+# Enable the bot
+enabled: true
+
+# Repository settings
+repository: kubestellar/ui
+
+# Bot behavior settings
+settings:
+  # Automatically add changeset files to PRs
+  autoAddChangesets: true
+  
+  # Comment on PRs when changesets are missing
+  commentOnMissingChangesets: true
+  
+  # Comment on PRs when changesets are added
+  commentOnChangesets: true
+  
+  # Require changesets for all PRs
+  requireChangesets: true
+  
+  # Allow changeset authors to merge their own changesets
+  allowAuthorsToMergeOwnChangesets: false
+
+# Comment templates
+comments:
+  missingChangeset: |
+    👋 Thanks for opening this pull request! 
+    
+    To help us track changes and generate release notes, please add a changeset file to this PR.
+    
+    You can do this by running:
+    ```bash
+    npm run changeset
+    ```
+    
+    This will guide you through creating a changeset that describes your changes.
+
+  changesetAdded: |
+    ✅ Changeset added! 
+    
+    This PR now includes a changeset file that will be used to generate release notes when the changes are published.
+
+# Labels to apply
+labels:
+  - "changeset"
+  - "release" 

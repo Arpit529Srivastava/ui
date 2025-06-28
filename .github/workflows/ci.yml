@@ -7,6 +7,30 @@ on:
     branches: ['*']
 
 jobs:
+  changeset:
+    name: Changeset Validation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Validate Changesets
+        run: npx changeset status
+      - name: ✅ Changeset Validation Passed
+        if: success()
+        run: echo "Changeset validation passed ✅"
+
   frontend:
     name: Frontend Checks
     runs-on: ubuntu-latest
