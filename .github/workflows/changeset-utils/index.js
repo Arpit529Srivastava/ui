@@ -1,5 +1,5 @@
-const path = require('path');
-const { readPackageUp } = require('read-package-up');
+import path from 'path';
+import { readPackageUp } from 'read-package-up';
 
 const getFormattedCommits = async (pullRequest, github) => {
   const commitOpts = github.rest.pulls.listCommits.endpoint.merge({
@@ -149,7 +149,7 @@ const commentWorkflow = async (pullRequest, github, changesetContents) => {
   }
 };
 
-module.exports = {
+export {
   getChangesetContents,
   commentWorkflow,
 };
