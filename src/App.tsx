@@ -2,6 +2,7 @@ import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { routesConfig } from './routes/routes-config';
 
+// Another minor test change: This comment is for a second changeset workflow test
 // Minor test change: This comment is for testing changeset automation
 const router = createBrowserRouter(routesConfig);
 
