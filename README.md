@@ -360,3 +360,8 @@ REDIS_IMAGE=redis:7-alpine docker compose up
 </a>
 </center>
 <br>
+
+
+## Demo Change for Changeset Automation
+
+This line was added to test the changeset automation workflow. You should see a changeset file and a bot comment on the PR when you open a pull request with a conventional commit title.
