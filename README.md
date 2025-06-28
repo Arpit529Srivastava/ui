@@ -348,26 +348,6 @@ REDIS_IMAGE=redis:7-alpine docker compose up
 >
 > This resolves almost 80% of issues caused by overridden changes during installation on existing systems.
 
-## Release Management
-
-This project uses [ChangeSet](https://github.com/changesets/changesets) for automated release management and changelog generation.
-
-### For Contributors
-
-When making changes that should be included in a release:
-
-1. **Create a changeset**: Run `npm run changeset` to create a changeset file
-2. **Follow the prompts**: Select the type of change (patch/minor/major) and describe your changes
-3. **Commit your changes**: Include both your code changes and the changeset file
-
-### For Maintainers
-
-- **Automated Releases**: When changesets are merged to main, GitHub Actions will create version PRs
-- **Release Notes**: Changelogs are automatically generated from changeset descriptions
-- **Semantic Versioning**: Versions are automatically incremented based on changeset types
-
-For detailed information, see our [ChangeSet Guide](docs/CHANGESET_GUIDE.md).
-
 <div>
 <h2><font size="6"><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Red%20Heart.png" alt="Red Heart" width="40" height="40" /> Contributors </font></h2>
 </div>
