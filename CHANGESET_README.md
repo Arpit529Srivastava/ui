@@ -5,6 +5,7 @@ This guide explains how to use the **Changeset** system in the KubeStellar UI re
 ## What is Changeset?
 
 Changeset is a tool for managing versioning and changelogs with a focus on monorepos. It automates the process of:
+
 - Determining version bumps based on conventional commits
 - Generating changelogs
 - Publishing packages
@@ -15,12 +16,14 @@ Changeset is a tool for managing versioning and changelogs with a focus on monor
 ### 1. Automatic Changeset Generation
 
 When you create a Pull Request with a title that starts with:
+
 - `feat:` - Generates a minor version bump
 - `fix:` - Generates a patch version bump
 - `feat!:` - Generates a major version bump
 - `fix!:` - Generates a major version bump
 
 The system will automatically:
+
 1. Analyze your PR commits and files
 2. Generate a changeset file in `.changeset/` directory
 3. Add a comment to your PR with the changeset preview
@@ -29,6 +32,7 @@ The system will automatically:
 ### 2. Release Process
 
 When changes are merged to the main branch:
+
 1. The release workflow runs tests
 2. Processes all changesets
 3. Creates a version bump PR
@@ -56,6 +60,7 @@ fix!: critical security fix
 ### Skipping Changeset Generation
 
 If you don't want auto-changeset to run on your PR:
+
 1. Add the `skip-changeset` label to your PR, OR
 2. Change your PR title to something other than `feat:` or `fix:`
 
@@ -68,6 +73,7 @@ npm run changeset
 ```
 
 This will prompt you to:
+
 1. Select which packages to version
 2. Choose the version bump type (patch, minor, major)
 3. Write a description of the changes
@@ -127,7 +133,7 @@ npm run release
 ### Auto-Changeset Workflow (`.github/workflows/auto-changeset.yml`)
 
 - **Trigger**: PR events (opened, edited, synchronize, reopened, ready_for_review)
-- **Conditions**: 
+- **Conditions**:
   - Repository starts with 'kubestellar/'
   - PR doesn't have 'skip-changeset' label
   - PR title starts with conventional commit prefixes
@@ -191,4 +197,4 @@ chore: maintenance tasks
 - [Changesets Documentation](https://github.com/changesets/changesets)
 - [Conventional Commits](https://www.conventionalcommits.org/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [NPM Publishing Guide](https://docs.npmjs.com/cli/v8/commands/npm-publish) 
+- [NPM Publishing Guide](https://docs.npmjs.com/cli/v8/commands/npm-publish)
