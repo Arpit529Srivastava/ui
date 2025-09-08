@@ -16,7 +16,7 @@ export type ApiResponse<T> = {
   message: string;
   status: number;
 };
-
+// this is just to check playwright testing workflow
 export type VerifyTokenResponse = {
   permissions: string[];
   username: string;
