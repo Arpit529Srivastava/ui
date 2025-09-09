@@ -2,12 +2,12 @@ name: Full Stack E2E Tests
 
 on:
   push:
-    branches: [ main, ci, develop ]
+    branches: [ main, ci, dev ]
     paths:
       - 'frontend/**'
       - 'backend/**'
   pull_request:
-    branches: [ main, ci, develop ]
+    branches: [ main, ci, dev ]
     paths:
       - 'frontend/**'
       - 'backend/**'
