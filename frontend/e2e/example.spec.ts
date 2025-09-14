@@ -5,9 +5,7 @@ import { test, expect } from '@playwright/test';
 test.describe('login route (mocked backend)', () => {
   test('renders login UI elements', async ({ page, context }) => {
     // Make sure locale and theme are deterministic
-    await context.addCookies([
-      { name: 'i18next', value: 'en', url: 'http://localhost:5173' },
-    ]);
+    await context.addCookies([{ name: 'i18next', value: 'en', url: 'http://localhost:5173' }]);
 
     // Mock KubeStellar status check to keep user on /login
     await page.route('**/api/kubestellar/status', async route => {
