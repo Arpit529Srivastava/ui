@@ -19,7 +19,6 @@ test.describe('WDS Page - Base Foundation Tests', () => {
     await loginPage.login();
 
     // Navigate to WDS page
-    // MSW wdsSuccess scenario already handles kubestellar status
     try {
       await page.goto(`${BASE}/workloads/manage`, { waitUntil: 'domcontentloaded' });
     } catch {
@@ -193,7 +192,6 @@ test.describe('WDS Page - Base Foundation Tests', () => {
   });
 
   test('page handles empty state when no workloads exist', async ({ page }) => {
-    // MSW wdsSuccess scenario already handles kubestellar status
     // Mock empty workloads response
     await page.route('**/api/wds/workloads', route => {
       route.fulfill({
@@ -269,12 +267,10 @@ test.describe('WDS Page - Base Foundation Tests', () => {
 
     // Refresh page
     await page.reload();
-    // Avoid networkidle in Firefox (websockets keep it busy); use domcontentloaded
     await page.waitForLoadState('domcontentloaded');
 
     // Should still show a valid render state after refresh
     if (browserName === 'firefox') {
-      // Firefox: avoid additional waits that may race with WS; treat as pass
       expect(true).toBeTruthy();
     } else {
       await page.waitForFunction(
