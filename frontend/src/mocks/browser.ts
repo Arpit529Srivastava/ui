@@ -119,15 +119,17 @@ export const scenarios: Record<string, HttpHandler[]> = {
 
   // WDS specific success scenario
   wdsSuccess: [
+    h.login,
+    h.me,
     h.statusReady,
     h.statusReadyRel,
-    h.me,
     h.workloads,
     h.workloadsRel,
     h.workloadStatus,
     h.workloadStatusRel,
     h.wdsGetContextAbs,
     h.wdsGetContextRel,
+    h.k8sInfo,
   ],
 };
 
