@@ -87,6 +87,7 @@ export class ReactFlowHelper {
               });
 
               if (shouldMock && data && data.length > 0) {
+                const handlerSetupDelay = 150;
                 setTimeout(() => {
                   if (this.readyState === this.OPEN) {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -129,13 +130,13 @@ export class ReactFlowHelper {
                           'namespaces'
                         );
                       } catch (e) {
-                        console.error('[MockWebSocket] Error sending data:', e, e);
+                        console.error('[MockWebSocket] Error sending data:', e);
                       }
                     } else {
                       console.warn('[MockWebSocket] No mock data to send for', urlString);
                     }
                   }
-                }, 150);
+                }, handlerSetupDelay);
               } else if (shouldMock) {
                 console.warn('[MockWebSocket] Should mock but no data provided for', urlString);
               }
