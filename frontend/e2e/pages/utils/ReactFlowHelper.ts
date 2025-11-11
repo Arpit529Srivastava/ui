@@ -8,19 +8,15 @@ export interface MockNamespaceData {
   context: string;
   resources: Record<string, Array<Record<string, unknown>>>;
 }
-
-// Interface for WebSocket mock configuration
 export interface WebSocketMockConfig {
   namespaceData?: MockNamespaceData[];
-  endpoint?: string; // e.g., '/ws/namespaces' or '/ws/wecs'
-  delay?: number; // Delay before sending data (ms)
+  endpoint?: string;
+  delay?: number;
 }
 
 // ReactFlow Helper for tests
 export class ReactFlowHelper {
   constructor(private page: Page) {}
-
-  // Inject mock namespace data into window for WebSocket mock
   async injectNamespaceData(data: MockNamespaceData[]): Promise<void> {
     await this.page.evaluate(mockData => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
