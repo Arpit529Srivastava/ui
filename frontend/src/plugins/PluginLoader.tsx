@@ -71,7 +71,7 @@ export const PluginProvider: React.FC<PluginProviderProps> = ({ children }) => {
               );
 
               const res = await api.get(
-                `/api/plugins/${manifest.metadata.name}~${manifest.metadata.author}~${manifest.metadata.version}/frontend/dist/${navItem.icon}`
+                `/api/plugins/${manifest.metadata.name}~${manifest.metadata.author}~${manifest.metadata.version}/frontend/dist/${navItem.icon}?_=${Date.now()}`
               );
               const iconBlob = new Blob([res.data], { type: res.headers['content-type'] });
               const iconUrl = URL.createObjectURL(iconBlob);
