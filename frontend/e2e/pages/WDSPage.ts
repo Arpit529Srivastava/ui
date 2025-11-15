@@ -170,7 +170,10 @@ export class WDSPage extends BasePage {
       }
     } catch (error) {
       // If page is closed or navigation fails, log and continue
-      if (error instanceof Error && (error.message.includes('closed') || error.message.includes('Target'))) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('closed') || error.message.includes('Target'))
+      ) {
         console.warn('Page was closed during ensureOnWdsPage');
         return;
       }
