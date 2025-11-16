@@ -289,7 +289,7 @@ export class WDSPage extends BasePage {
         { timeout: 10000 }
       )
       .catch(() => {
-        // If wait fails, don't add extra timeout - just continue
+        // Continue if waitForFunction fails - view might already be rendered or in a different state
       });
   }
 
@@ -308,7 +308,7 @@ export class WDSPage extends BasePage {
         { timeout: 10000 }
       )
       .catch(() => {
-        // If wait fails, don't add extra timeout - just continue
+        // Continue if waitForFunction fails - view might already be rendered or in a different state
       });
   }
 
@@ -370,6 +370,18 @@ export class WDSPage extends BasePage {
       // Ignore error
     }
     return counts;
+  }
+
+  async getContextDropdownValue(): Promise<string> {
+    return await this.contextDropdown
+      .evaluate((el: HTMLElement) => {
+        const select = el as HTMLSelectElement;
+        if (select.value) return select.value;
+        const input = el.querySelector('input[value]') as HTMLInputElement;
+        if (input?.value) return input.value;
+        return el.textContent?.trim() || 'all';
+      })
+      .catch(() => 'all');
   }
 
   async selectContext(context: string) {

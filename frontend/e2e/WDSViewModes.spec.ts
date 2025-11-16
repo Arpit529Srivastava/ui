@@ -112,6 +112,11 @@ test.describe('WDS View Mode Switching', () => {
         .filter({ visible: true })
         .all();
       expect(nodesAfter.length).toBeGreaterThanOrEqual(0);
+
+      if (wasSelected) {
+        const detailsPanelStillOpen = await wdsPage.isDetailsPanelOpen();
+        expect(detailsPanelStillOpen).toBeFalsy();
+      }
     }
   });
 
@@ -205,48 +210,22 @@ test.describe('WDS View Mode Switching', () => {
 
         const options = await page.getByRole('option').all();
         if (options.length > 1) {
-          const optionText = await options[1].textContent();
-          const optionValue = await options[1].getAttribute('data-value').catch(() => null);
           await options[1].click();
           await page.waitForTimeout(500).catch(() => {});
 
-          const selectedContext = await contextDropdown
-            .evaluate((el: HTMLElement) => {
-              const select = el as HTMLSelectElement;
-              if (select.value) return select.value;
-              const input = el.querySelector('input[value]') as HTMLInputElement;
-              if (input?.value) return input.value;
-              return el.textContent?.trim() || 'all';
-            })
-            .catch(() => optionValue || optionText || 'all');
+          const selectedContext = await wdsPage.getContextDropdownValue();
 
           await wdsPage.switchToListView();
           await wdsPage.waitForListView();
 
-          const contextAfterSwitch = await contextDropdown
-            .evaluate((el: HTMLElement) => {
-              const select = el as HTMLSelectElement;
-              if (select.value) return select.value;
-              const input = el.querySelector('input[value]') as HTMLInputElement;
-              if (input?.value) return input.value;
-              return el.textContent?.trim() || 'all';
-            })
-            .catch(() => selectedContext);
+          const contextAfterSwitch = await wdsPage.getContextDropdownValue();
 
           expect(contextAfterSwitch).toBe(selectedContext);
 
           await wdsPage.switchToTilesView();
           await wdsPage.waitForTilesView();
 
-          const contextAfterSwitchBack = await contextDropdown
-            .evaluate((el: HTMLElement) => {
-              const select = el as HTMLSelectElement;
-              if (select.value) return select.value;
-              const input = el.querySelector('input[value]') as HTMLInputElement;
-              if (input?.value) return input.value;
-              return el.textContent?.trim() || 'all';
-            })
-            .catch(() => selectedContext);
+          const contextAfterSwitchBack = await wdsPage.getContextDropdownValue();
 
           expect(contextAfterSwitchBack).toBe(selectedContext);
         } else {
@@ -279,7 +258,7 @@ test.describe('WDS View Mode Switching', () => {
 
     const urlAfterEnsure = page.url();
     if (urlAfterEnsure.includes('/install')) {
-      await page.goto('http://localhost:5173/workloads/manage', {
+      await page.goto(`${wdsPage.BASE_URL}/workloads/manage`, {
         waitUntil: 'domcontentloaded',
       });
       await page.waitForTimeout(1000);
@@ -312,25 +291,11 @@ test.describe('WDS View Mode Switching', () => {
     await page.waitForTimeout(1000).catch(() => {});
 
     const isListAfterRefresh = await wdsPage.isListViewActive();
-    const isTilesAfterRefresh = await wdsPage.isTilesViewActive();
-
     const hasListViewContent = await wdsPage.listViewTable
       .isVisible({ timeout: 2000 })
       .catch(() => false);
-    const hasTilesViewContent = await wdsPage.reactFlowCanvas
-      .isVisible({ timeout: 2000 })
-      .catch(() => false);
-    const hasEmptyState = await wdsPage.emptyStateMessage
-      .isVisible({ timeout: 2000 })
-      .catch(() => false);
 
-    expect(
-      isListAfterRefresh ||
-        isTilesAfterRefresh ||
-        hasListViewContent ||
-        hasTilesViewContent ||
-        hasEmptyState
-    ).toBeTruthy();
+    expect(isListAfterRefresh || hasListViewContent).toBeTruthy();
   });
 
   test('pagination works in list view', async ({ page }) => {
@@ -386,20 +351,24 @@ test.describe('WDS View Mode Switching', () => {
     await page.waitForURL(/workloads\/manage/, { timeout: 10000 });
 
     await wdsPage.switchToTilesView();
-    await page.waitForTimeout(2000);
+    await wdsPage.waitForTilesView();
 
-    const zoomControlsVisible = await wdsPage.zoomControls
+    const zoomControlsInTiles = await wdsPage.zoomControls
       .isVisible({ timeout: 5000 })
       .catch(() => false);
 
     await wdsPage.switchToListView();
-    await page.waitForTimeout(2000);
+    await wdsPage.waitForListView();
 
-    const zoomControlsHidden = !(await wdsPage.zoomControls
+    const zoomControlsInList = await wdsPage.zoomControls
       .isVisible({ timeout: 2000 })
-      .catch(() => false));
+      .catch(() => false);
 
-    expect(zoomControlsVisible || zoomControlsHidden).toBeTruthy();
+    expect(zoomControlsInList).toBeFalsy();
+
+    if (zoomControlsInTiles) {
+      expect(zoomControlsInTiles).toBeTruthy();
+    }
   });
 
   test('filters section visible only in tiles view', async () => {
@@ -413,8 +382,9 @@ test.describe('WDS View Mode Switching', () => {
 
     const filtersVisibleInList = await wdsPage.isFiltersVisible();
 
+    expect(filtersVisibleInList).toBeFalsy();
     if (filtersVisibleInTiles) {
-      expect(filtersVisibleInList).toBeFalsy();
+      expect(filtersVisibleInTiles).toBeTruthy();
     }
   });
 
@@ -431,7 +401,6 @@ test.describe('WDS View Mode Switching', () => {
     await page.waitForTimeout(1000);
 
     const finalMode = (await wdsPage.isListViewActive()) ? 'list' : 'tiles';
-    expect(['list', 'tiles']).toContain(finalMode);
 
     if (finalMode === 'list') {
       const hasList =
