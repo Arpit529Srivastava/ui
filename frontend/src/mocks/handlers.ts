@@ -307,6 +307,14 @@ export const workloadsRel: HttpHandler = http.get('/api/wds/workloads', () =>
   ])
 );
 
+export const workloadsEmpty: HttpHandler = http.get('http://localhost:4000/api/wds/workloads', () =>
+  HttpResponse.json([])
+);
+
+export const workloadsEmptyRel: HttpHandler = http.get('/api/wds/workloads', () =>
+  HttpResponse.json([])
+);
+
 export const me: HttpHandler = http.get('http://localhost:4000/api/me', () =>
   HttpResponse.json({
     is_admin: true,

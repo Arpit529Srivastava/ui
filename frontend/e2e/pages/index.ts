@@ -8,6 +8,8 @@ export { BindingPolicyPage } from './BindingPolicyPage';
 // Export utilities
 export { MSWHelper } from './utils/MSWHelper';
 export { AuthHelper } from './utils/AuthHelper';
+export { ReactFlowHelper } from './utils/ReactFlowHelper';
+export type { MockNamespaceData, WebSocketMockConfig } from './utils/ReactFlowHelper';
 
 // Export constants
 export { DEFAULT_CREDENTIALS, BASE_URL } from './constants';

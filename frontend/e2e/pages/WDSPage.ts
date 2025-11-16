@@ -286,12 +286,12 @@ export class WDSPage extends BasePage {
           const hasListView = listViewContainer && listViewContainer.offsetParent !== null;
           return !!(reactFlow || canvas || emptyState || flowContainer) && !hasListView;
         },
-        { timeout: 20000 }
+        { timeout: 15000 }
       )
       .catch(async () => {
-        await this.page.waitForTimeout(2000);
+        await this.page.waitForTimeout(1000);
       });
-    await this.page.waitForTimeout(1000);
+    await this.page.waitForTimeout(500);
   }
 
   async waitForListView() {
