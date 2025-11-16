@@ -34,7 +34,9 @@ test.describe('TreeViewCanvas Tests', () => {
     await reactFlowHelper.waitForReactFlow(10000);
     const hasNodes = await reactFlowHelper.waitForReactFlowNodes(8000);
 
-    const hasReactFlow = await wdsPage.reactFlowCanvas.isVisible({ timeout: 5000 }).catch(() => false);
+    const hasReactFlow = await wdsPage.reactFlowCanvas
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
     const hasCanvas = await wdsPage.flowCanvas.isVisible({ timeout: 5000 }).catch(() => false);
 
     expect(hasReactFlow || hasCanvas).toBeTruthy();
@@ -70,7 +72,7 @@ test.describe('TreeViewCanvas Tests', () => {
     } else {
       await wdsPage.switchToListView();
     }
-    
+
     const isListView = await wdsPage.isListViewActive();
     expect(isListView).toBeTruthy();
 
@@ -140,9 +142,18 @@ test.describe('TreeViewCanvas Tests', () => {
 
     const initialZoom = await reactFlowHelper.getZoomLevel();
 
-    const zoomInButton = page.getByRole('button').filter({ hasText: /zoom.*in|ZoomIn/i }).first();
-    const zoomOutButton = page.getByRole('button').filter({ hasText: /zoom.*out|ZoomOut/i }).first();
-    const resetButton = page.getByRole('button').filter({ hasText: /reset|refresh/i }).first();
+    const zoomInButton = page
+      .getByRole('button')
+      .filter({ hasText: /zoom.*in|ZoomIn/i })
+      .first();
+    const zoomOutButton = page
+      .getByRole('button')
+      .filter({ hasText: /zoom.*out|ZoomOut/i })
+      .first();
+    const resetButton = page
+      .getByRole('button')
+      .filter({ hasText: /reset|refresh/i })
+      .first();
 
     const timeout = browserName === 'chromium' ? 1000 : 2000;
     const waitTime = browserName === 'chromium' ? 400 : 800;
@@ -174,8 +185,12 @@ test.describe('TreeViewCanvas Tests', () => {
     await wdsPage.waitForPageLoad();
     await wdsPage.switchToTilesView();
 
-    const collapseAllButton = await wdsPage.collapseAllButton.isVisible({ timeout: 3000 }).catch(() => false);
-    const expandAllButton = await wdsPage.expandAllButton.isVisible({ timeout: 3000 }).catch(() => false);
+    const collapseAllButton = await wdsPage.collapseAllButton
+      .isVisible({ timeout: 3000 })
+      .catch(() => false);
+    const expandAllButton = await wdsPage.expandAllButton
+      .isVisible({ timeout: 3000 })
+      .catch(() => false);
 
     if (collapseAllButton) {
       await wdsPage.collapseAllButton.click();
@@ -246,15 +261,21 @@ test.describe('TreeViewCanvas Tests', () => {
     await page.waitForTimeout(2000);
 
     const emptyStateVisible = await wdsPage.isEmptyStateVisible();
-    const emptyMessageVisible = await wdsPage.emptyStateMessage.isVisible({ timeout: 5000 }).catch(() => false);
-    const createButtonVisible = await wdsPage.emptyStateCreateButton.isVisible({ timeout: 5000 }).catch(() => false);
+    const emptyMessageVisible = await wdsPage.emptyStateMessage
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
+    const createButtonVisible = await wdsPage.emptyStateCreateButton
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
     const emptyTextInPage = await page
       .locator('text=/no workloads|empty|create workload/i')
       .first()
       .isVisible({ timeout: 3000 })
       .catch(() => false);
 
-    expect(emptyStateVisible || emptyMessageVisible || createButtonVisible || emptyTextInPage).toBeTruthy();
+    expect(
+      emptyStateVisible || emptyMessageVisible || createButtonVisible || emptyTextInPage
+    ).toBeTruthy();
   });
 
   test('empty state create workload button works', async ({ page }) => {
@@ -270,7 +291,9 @@ test.describe('TreeViewCanvas Tests', () => {
     await page.waitForTimeout(2000);
 
     const wdsPage = new WDSPage(page);
-    const createButtonVisible = await wdsPage.emptyStateCreateButton.isVisible({ timeout: 3000 }).catch(() => false);
+    const createButtonVisible = await wdsPage.emptyStateCreateButton
+      .isVisible({ timeout: 3000 })
+      .catch(() => false);
 
     if (createButtonVisible) {
       await wdsPage.emptyStateCreateButton.click();
@@ -310,8 +333,12 @@ test.describe('TreeViewCanvas Tests', () => {
     await page.reload({ waitUntil: 'domcontentloaded' });
 
     const wdsPage = new WDSPage(page);
-    const skeletonVisible = await wdsPage.loadingSkeleton.isVisible({ timeout: 2000 }).catch(() => false);
-    const listSkeletonVisible = await wdsPage.listViewSkeleton.isVisible({ timeout: 2000 }).catch(() => false);
+    const skeletonVisible = await wdsPage.loadingSkeleton
+      .isVisible({ timeout: 2000 })
+      .catch(() => false);
+    const listSkeletonVisible = await wdsPage.listViewSkeleton
+      .isVisible({ timeout: 2000 })
+      .catch(() => false);
 
     if (skeletonVisible || listSkeletonVisible) {
       expect(skeletonVisible || listSkeletonVisible).toBeTruthy();
@@ -349,7 +376,11 @@ test.describe('TreeViewCanvas Tests', () => {
     await page.waitForTimeout(browserName === 'chromium' ? 500 : 1000);
 
     const nodeSelector = '.react-flow__node, [class*="react-flow__node"]';
-    const nodeExists = await page.locator(nodeSelector).first().isVisible({ timeout: 5000 }).catch(() => false);
+    const nodeExists = await page
+      .locator(nodeSelector)
+      .first()
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
 
     if (!nodeExists) {
       expect(true).toBeTruthy();
@@ -359,10 +390,14 @@ test.describe('TreeViewCanvas Tests', () => {
     try {
       if (browserName === 'webkit' || browserName === 'firefox' || browserName === 'chromium') {
         await page.evaluate(() => {
-          const node = document.querySelector('.react-flow__node, [class*="react-flow__node"]') as HTMLElement;
+          const node = document.querySelector(
+            '.react-flow__node, [class*="react-flow__node"]'
+          ) as HTMLElement;
           if (!node) return;
 
-          const clickableElement = node.querySelector('div[style*="cursor"], div[role="button"], button') as HTMLElement;
+          const clickableElement = node.querySelector(
+            'div[style*="cursor"], div[role="button"], button'
+          ) as HTMLElement;
           const target = clickableElement || node;
 
           const mouseDown = new MouseEvent('mousedown', {
@@ -391,15 +426,23 @@ test.describe('TreeViewCanvas Tests', () => {
         });
       } else {
         const node = page.locator(nodeSelector).first();
-        const clickableInNode = node.locator('div[style*="cursor"], div[role="button"], button').first();
+        const clickableInNode = node
+          .locator('div[style*="cursor"], div[role="button"], button')
+          .first();
         const clickTarget = (await clickableInNode.count()) > 0 ? clickableInNode : node;
         await clickTarget.click({ force: true, timeout: 5000 });
       }
 
-      await page.waitForTimeout(browserName === 'firefox' ? 3000 : browserName === 'chromium' ? 1000 : 2000);
+      await page.waitForTimeout(
+        browserName === 'firefox' ? 3000 : browserName === 'chromium' ? 1000 : 2000
+      );
 
       const panelOpen = await wdsPage.isDetailsPanelOpen();
-      const hasDialog = await page.locator('[role="dialog"]').first().isVisible({ timeout: 3000 }).catch(() => false);
+      const hasDialog = await page
+        .locator('[role="dialog"]')
+        .first()
+        .isVisible({ timeout: 3000 })
+        .catch(() => false);
       const hasPanel = await page
         .locator('[class*="Panel"], [class*="panel"], [class*="Drawer"], [class*="DetailsPanel"]')
         .first()
@@ -411,7 +454,11 @@ test.describe('TreeViewCanvas Tests', () => {
           await wdsPage.closeDetailsPanel();
         }
         expect(true).toBeTruthy();
-      } else if (browserName === 'webkit' || browserName === 'firefox' || browserName === 'chromium') {
+      } else if (
+        browserName === 'webkit' ||
+        browserName === 'firefox' ||
+        browserName === 'chromium'
+      ) {
         expect(hasNodes).toBeTruthy();
       } else {
         expect(panelOpen || hasDialog || hasPanel).toBeTruthy();
@@ -420,10 +467,16 @@ test.describe('TreeViewCanvas Tests', () => {
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (
         (browserName === 'webkit' || browserName === 'firefox' || browserName === 'chromium') &&
-        (errorMessage.includes('intercepts') || errorMessage.includes('pointer') || errorMessage.includes('timeout'))
+        (errorMessage.includes('intercepts') ||
+          errorMessage.includes('pointer') ||
+          errorMessage.includes('timeout'))
       ) {
         const panelOpen = await wdsPage.isDetailsPanelOpen().catch(() => false);
-        const hasDialog = await page.locator('[role="dialog"]').first().isVisible({ timeout: 1000 }).catch(() => false);
+        const hasDialog = await page
+          .locator('[role="dialog"]')
+          .first()
+          .isVisible({ timeout: 1000 })
+          .catch(() => false);
         expect(panelOpen || hasDialog || hasNodes).toBeTruthy();
       } else {
         throw error;
@@ -436,7 +489,9 @@ test.describe('TreeViewCanvas Tests', () => {
     await wdsPage.waitForPageLoad();
     await wdsPage.switchToTilesView();
 
-    const edgeToggle = page.locator('[class*="ToggleButton"], [role="button"]').filter({ hasText: /bezier|step|edge/i });
+    const edgeToggle = page
+      .locator('[class*="ToggleButton"], [role="button"]')
+      .filter({ hasText: /bezier|step|edge/i });
 
     if ((await edgeToggle.count()) > 0) {
       const firstButton = edgeToggle.first();
@@ -458,7 +513,7 @@ test.describe('TreeViewCanvas Tests', () => {
   test('zoom preset menu works', async ({ page, browserName }) => {
     const wdsPage = new WDSPage(page);
     await wdsPage.waitForPageLoad();
-    
+
     if (browserName === 'chromium') {
       try {
         await wdsPage.switchToTilesView();
@@ -540,7 +595,9 @@ test.describe('TreeViewCanvas Tests', () => {
     const wdsPage = new WDSPage(page);
     await wdsPage.waitForPageLoad();
 
-    const dropdownVisible = await wdsPage.contextDropdown.isVisible({ timeout: 3000 }).catch(() => false);
+    const dropdownVisible = await wdsPage.contextDropdown
+      .isVisible({ timeout: 3000 })
+      .catch(() => false);
 
     if (dropdownVisible) {
       await wdsPage.contextDropdown.click();
@@ -567,8 +624,12 @@ test.describe('TreeViewCanvas Tests', () => {
       await reactFlowHelper.waitForReactFlowWithZoomControls(browserName);
     } catch (error) {
       if (browserName === 'chromium') {
-        const canvasVisible = await wdsPage.flowCanvas.isVisible({ timeout: 2000 }).catch(() => false);
-        const reactFlowVisible = await wdsPage.reactFlowCanvas.isVisible({ timeout: 2000 }).catch(() => false);
+        const canvasVisible = await wdsPage.flowCanvas
+          .isVisible({ timeout: 2000 })
+          .catch(() => false);
+        const reactFlowVisible = await wdsPage.reactFlowCanvas
+          .isVisible({ timeout: 2000 })
+          .catch(() => false);
         if (canvasVisible || reactFlowVisible) {
           expect(true).toBeTruthy();
           return;
@@ -582,7 +643,9 @@ test.describe('TreeViewCanvas Tests', () => {
     const initialZoom = await reactFlowHelper.getZoomLevel();
 
     const canvasVisible = await wdsPage.flowCanvas.isVisible({ timeout: 5000 }).catch(() => false);
-    const reactFlowVisible = await wdsPage.reactFlowCanvas.isVisible({ timeout: 5000 }).catch(() => false);
+    const reactFlowVisible = await wdsPage.reactFlowCanvas
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
 
     expect(canvasVisible || reactFlowVisible).toBeTruthy();
 
@@ -613,7 +676,9 @@ test.describe('TreeViewCanvas Tests', () => {
     await reactFlowHelper.waitForReactFlowNodes(8000);
 
     const canvasVisible = await wdsPage.flowCanvas.isVisible({ timeout: 5000 }).catch(() => false);
-    const reactFlowVisible = await wdsPage.reactFlowCanvas.isVisible({ timeout: 5000 }).catch(() => false);
+    const reactFlowVisible = await wdsPage.reactFlowCanvas
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
 
     expect(canvasVisible || reactFlowVisible).toBeTruthy();
 
@@ -633,4 +698,3 @@ test.describe('TreeViewCanvas Tests', () => {
     }
   });
 });
-
