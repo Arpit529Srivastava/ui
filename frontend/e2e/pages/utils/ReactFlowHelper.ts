@@ -26,6 +26,17 @@ export class ReactFlowHelper {
     }
   }
 
+  private async checkPageClosureForWebkit(browserName: string): Promise<boolean> {
+    const isOpen = await this.isPageOpen();
+    if (!isOpen) {
+      if (browserName === 'webkit') {
+        return false;
+      }
+      throw new Error('Page was closed');
+    }
+    return true;
+  }
+
   async injectNamespaceData(data: MockNamespaceData[]): Promise<void> {
     await this.page.evaluate(mockData => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,8 +44,14 @@ export class ReactFlowHelper {
     }, data);
   }
 
+  private static readonly WEBSOCKET_HANDLER_SETUP_DELAY = 150;
+
   async setupWebSocketMock(config: WebSocketMockConfig = {}): Promise<void> {
-    const { namespaceData, endpoint = '/ws/namespaces', delay = 150 } = config;
+    const {
+      namespaceData,
+      endpoint = '/ws/namespaces',
+      delay = ReactFlowHelper.WEBSOCKET_HANDLER_SETUP_DELAY,
+    } = config;
     const mockData = namespaceData || [];
 
     await this.page.addInitScript(
@@ -93,7 +110,6 @@ export class ReactFlowHelper {
               });
 
               if (shouldMock && data && data.length > 0) {
-                const handlerSetupDelay = 150;
                 setTimeout(() => {
                   if (this.readyState === this.OPEN) {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -142,7 +158,7 @@ export class ReactFlowHelper {
                       console.warn('[MockWebSocket] No mock data to send for', urlString);
                     }
                   }
-                }, handlerSetupDelay);
+                }, ReactFlowHelper.WEBSOCKET_HANDLER_SETUP_DELAY);
               } else if (shouldMock) {
                 console.warn('[MockWebSocket] Should mock but no data provided for', urlString);
               }
@@ -258,19 +274,12 @@ export class ReactFlowHelper {
         return false;
       }
       await this.page.waitForTimeout(2000);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('closed') || errorMessage.includes('Target')) {
-        return false;
-      }
-      throw error;
-    }
 
-    try {
-      const isOpen = await this.isPageOpen();
-      if (!isOpen) {
+      const stillOpen = await this.isPageOpen();
+      if (!stillOpen) {
         return false;
       }
+
       return await this.page
         .locator('.react-flow, [class*="react-flow"]')
         .isVisible({ timeout: 5000 })
@@ -377,22 +386,14 @@ export class ReactFlowHelper {
       throw error;
     }
 
-    const stillOpen = await this.isPageOpen();
-    if (!stillOpen) {
-      if (browserName === 'webkit') {
-        return;
-      }
-      throw new Error('Page was closed before ensuring tiles view');
+    if (!(await this.checkPageClosureForWebkit(browserName))) {
+      return;
     }
 
     await this.ensureTilesView();
 
-    const stillOpenBeforeWait = await this.isPageOpen();
-    if (!stillOpenBeforeWait) {
-      if (browserName === 'webkit') {
-        return;
-      }
-      throw new Error('Page was closed before waiting for ReactFlow');
+    if (!(await this.checkPageClosureForWebkit(browserName))) {
+      return;
     }
 
     try {
@@ -407,12 +408,8 @@ export class ReactFlowHelper {
         throw error;
       }
 
-      const isStillOpen = await this.isPageOpen();
-      if (!isStillOpen) {
-        if (browserName === 'webkit') {
-          return;
-        }
-        throw new Error('Page was closed during ReactFlow wait');
+      if (!(await this.checkPageClosureForWebkit(browserName))) {
+        return;
       }
 
       try {
