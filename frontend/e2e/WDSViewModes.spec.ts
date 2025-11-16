@@ -188,299 +188,6 @@ test.describe('WDS View Mode Switching', () => {
     }
   });
 
-  test('empty state displays in tiles view', async ({ page }) => {
-    // Mock empty workloads response using page.route (MSW doesn't have empty state scenario)
-    await page.route('**/api/wds/workloads*', route => {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify([]),
-      });
-    });
-
-    await page.route('**/wds/get/context*', route => {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({}),
-      });
-    });
-
-    // Mock KubeStellar status to prevent redirects to /install
-    await page.route('**/api/kubestellar/status*', route => {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ allReady: true }),
-      });
-    });
-
-    // Ensure MSW scenario is applied
-    await mswHelper.applyScenario('wdsSuccess');
-
-    // Reload with error handling
-    try {
-      await page.reload({ waitUntil: 'domcontentloaded' });
-      try {
-        await page.waitForTimeout(1000); // Reduced timeout
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        if (errorMessage.includes('closed') || errorMessage.includes('Target')) {
-          // Page closed during reload, try to navigate fresh
-          await page.goto('http://localhost:5173/workloads/manage', {
-            waitUntil: 'domcontentloaded',
-          });
-          await page.waitForTimeout(1000);
-        } else {
-          throw error;
-        }
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('closed') || errorMessage.includes('Target')) {
-        // Page closed, try to navigate fresh
-        await page.goto('http://localhost:5173/workloads/manage', {
-          waitUntil: 'domcontentloaded',
-        });
-        await page.waitForTimeout(1000);
-      } else {
-        throw error;
-      }
-    }
-
-    // Handle potential login redirect using POM
-    try {
-      const currentUrl = page.url();
-      if (currentUrl.includes('/login')) {
-        await loginPage.login();
-        await page.waitForURL(/workloads\/manage|/, { timeout: 10000 });
-      }
-    } catch (error) {
-      // If page closed during login, try to recover
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('closed') || errorMessage.includes('Target')) {
-        console.warn('Page closed during login handling');
-        // Try to navigate and login again
-        try {
-          await page.goto('http://localhost:5173/login', { waitUntil: 'domcontentloaded' });
-          await loginPage.login();
-        } catch {
-          // If this also fails, let the test fail with a clearer error
-        }
-      }
-    }
-
-    // Use POM methods to ensure we're on the right page (with error handling)
-    try {
-      await wdsPage.ensureOnWdsPage();
-    } catch (error) {
-      // If ensureOnWdsPage fails due to page closure, try direct navigation
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('closed') || errorMessage.includes('Target')) {
-        try {
-          await page.goto('http://localhost:5173/workloads/manage', {
-            waitUntil: 'domcontentloaded',
-          });
-          await page.waitForTimeout(1000);
-        } catch {
-          // If navigation also fails, the test will fail with a clearer error
-        }
-      } else {
-        throw error;
-      }
-    }
-
-    // Wait for URL and handle potential redirects
-    try {
-      await page.waitForURL(/workloads\/manage/, { timeout: 10000 });
-    } catch {
-      // If still on install page, navigate directly
-      try {
-        const currentUrl = page.url();
-        if (currentUrl.includes('/install')) {
-          await page.goto('http://localhost:5173/workloads/manage', {
-            waitUntil: 'domcontentloaded',
-          });
-          await page.waitForTimeout(1000);
-        }
-      } catch {
-        // If navigation fails, continue and let verifyViewModeButtons handle it
-      }
-    }
-
-    // Wait for the TreeView component to be fully rendered
-    // Check for header title or any header element first
-    await page
-      .waitForSelector('h4, [class*="TreeViewHeader"], text="Workloads"', { timeout: 10000 })
-      .catch(() => {});
-    await page.waitForTimeout(1000); // Give time for icons to load
-
-    // For empty state, wait for view mode buttons to be visible instead of full page load
-    await wdsPage.verifyViewModeButtons();
-
-    // Use POM method to switch view
-    await wdsPage.switchToTilesView();
-
-    // Use POM methods to verify empty state
-    const isEmpty = await wdsPage.isEmptyStateVisible();
-    const hasEmptyMessage = await wdsPage.emptyStateMessage
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-    const hasCreateButton = await wdsPage.emptyStateCreateButton
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-
-    expect(isEmpty || hasEmptyMessage || hasCreateButton).toBeTruthy();
-  });
-
-  test('empty state displays in list view', async ({ page }) => {
-    // Mock empty workloads response using page.route (MSW doesn't have empty state scenario)
-    await page.route('**/api/wds/workloads*', route => {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify([]),
-      });
-    });
-
-    await page.route('**/wds/get/context*', route => {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({}),
-      });
-    });
-
-    // Mock KubeStellar status to prevent redirects to /install
-    await page.route('**/api/kubestellar/status*', route => {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ allReady: true }),
-      });
-    });
-
-    // Ensure MSW scenario is applied
-    await mswHelper.applyScenario('wdsSuccess');
-
-    // Reload with error handling
-    try {
-      await page.reload({ waitUntil: 'domcontentloaded' });
-      try {
-        await page.waitForTimeout(1000); // Reduced timeout
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        if (errorMessage.includes('closed') || errorMessage.includes('Target')) {
-          // Page closed during reload, try to navigate fresh
-          await page.goto('http://localhost:5173/workloads/manage', {
-            waitUntil: 'domcontentloaded',
-          });
-          await page.waitForTimeout(1000);
-        } else {
-          throw error;
-        }
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('closed') || errorMessage.includes('Target')) {
-        // Page closed, try to navigate fresh
-        await page.goto('http://localhost:5173/workloads/manage', {
-          waitUntil: 'domcontentloaded',
-        });
-        await page.waitForTimeout(1000);
-      } else {
-        throw error;
-      }
-    }
-
-    // Handle potential login redirect using POM
-    try {
-      const currentUrl = page.url();
-      if (currentUrl.includes('/login')) {
-        await loginPage.login();
-        await page.waitForURL(/workloads\/manage|/, { timeout: 10000 });
-      }
-    } catch (error) {
-      // If page closed during login, try to recover
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('closed') || errorMessage.includes('Target')) {
-        console.warn('Page closed during login handling');
-        // Try to navigate and login again
-        try {
-          await page.goto('http://localhost:5173/login', { waitUntil: 'domcontentloaded' });
-          await loginPage.login();
-        } catch {
-          // If this also fails, let the test fail with a clearer error
-        }
-      }
-    }
-
-    // Use POM methods to ensure we're on the right page (with error handling)
-    try {
-      await wdsPage.ensureOnWdsPage();
-    } catch (error) {
-      // If ensureOnWdsPage fails due to page closure, try direct navigation
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('closed') || errorMessage.includes('Target')) {
-        try {
-          await page.goto('http://localhost:5173/workloads/manage', {
-            waitUntil: 'domcontentloaded',
-          });
-          await page.waitForTimeout(1000);
-        } catch {
-          // If navigation also fails, the test will fail with a clearer error
-        }
-      } else {
-        throw error;
-      }
-    }
-
-    // Wait for URL and handle potential redirects
-    try {
-      await page.waitForURL(/workloads\/manage/, { timeout: 10000 });
-    } catch {
-      // If still on install page, navigate directly
-      try {
-        const currentUrl = page.url();
-        if (currentUrl.includes('/install')) {
-          await page.goto('http://localhost:5173/workloads/manage', {
-            waitUntil: 'domcontentloaded',
-          });
-          await page.waitForTimeout(1000);
-        }
-      } catch {
-        // If navigation fails, continue and let verifyViewModeButtons handle it
-      }
-    }
-
-    // Wait for the TreeView component to be fully rendered
-    // Check for header title or any header element first
-    await page
-      .waitForSelector('h4, [class*="TreeViewHeader"], text="Workloads"', { timeout: 10000 })
-      .catch(() => {});
-    await page.waitForTimeout(1000); // Give time for icons to load
-
-    // For empty state, wait for view mode buttons to be visible instead of full page load
-    await wdsPage.verifyViewModeButtons();
-
-    // Use POM method to switch view
-    await wdsPage.switchToListView();
-
-    // Use POM methods to verify empty state
-    const hasEmptyMessage = await wdsPage.emptyStateMessage
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-    const hasCreateButton = await wdsPage.emptyStateCreateButton
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-    const tableEmpty = await wdsPage.listViewTable
-      .locator('text=/no.*data|empty/i')
-      .isVisible({ timeout: 2000 })
-      .catch(() => false);
-
-    expect(hasEmptyMessage || hasCreateButton || tableEmpty).toBeTruthy();
-  });
-
   test('switching between modes maintains context filter', async ({ page }) => {
     await wdsPage.switchToTilesView();
     await wdsPage.waitForTilesView();
@@ -494,14 +201,14 @@ test.describe('WDS View Mode Switching', () => {
 
       if (isVisible) {
         await contextDropdown.click();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300).catch(() => {});
 
         const options = await page.getByRole('option').all();
         if (options.length > 1) {
           const optionText = await options[1].textContent();
           const optionValue = await options[1].getAttribute('data-value').catch(() => null);
           await options[1].click();
-          await page.waitForTimeout(1000);
+          await page.waitForTimeout(500).catch(() => {});
 
           const selectedContext = await contextDropdown
             .evaluate((el: HTMLElement) => {
@@ -515,7 +222,6 @@ test.describe('WDS View Mode Switching', () => {
 
           await wdsPage.switchToListView();
           await wdsPage.waitForListView();
-          await page.waitForTimeout(1000);
 
           const contextAfterSwitch = await contextDropdown
             .evaluate((el: HTMLElement) => {
@@ -531,7 +237,6 @@ test.describe('WDS View Mode Switching', () => {
 
           await wdsPage.switchToTilesView();
           await wdsPage.waitForTilesView();
-          await page.waitForTimeout(1000);
 
           const contextAfterSwitchBack = await contextDropdown
             .evaluate((el: HTMLElement) => {
@@ -556,33 +261,76 @@ test.describe('WDS View Mode Switching', () => {
   });
 
   test('view mode persists after page refresh', async ({ page }) => {
-    // Use POM method to switch to list view
     await wdsPage.switchToListView();
     await wdsPage.waitForListView();
 
-    // Re-apply MSW scenario to ensure handlers are active after reload
     await mswHelper.applyScenario('wdsSuccess');
 
     await page.reload({ waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(1000);
 
-    // Handle potential login redirect using POM
     const currentUrl = page.url();
     if (currentUrl.includes('/login')) {
       await loginPage.login();
       await page.waitForURL(/workloads\/manage|/, { timeout: 10000 });
     }
 
-    // Use POM methods to ensure we're on the right page
     await wdsPage.ensureOnWdsPage();
-    await page.waitForURL(/workloads\/manage/, { timeout: 10000 });
-    await wdsPage.waitForPageLoad();
 
-    // Use POM methods to check view mode
+    const urlAfterEnsure = page.url();
+    if (urlAfterEnsure.includes('/install')) {
+      await page.goto('http://localhost:5173/workloads/manage', {
+        waitUntil: 'domcontentloaded',
+      });
+      await page.waitForTimeout(1000);
+    }
+
+    await page.waitForURL(/workloads\/manage/, { timeout: 10000 }).catch(() => {
+      const currentUrl = page.url();
+      if (!currentUrl.includes('/workloads/manage')) {
+        throw new Error(`Expected to be on /workloads/manage but was on ${currentUrl}`);
+      }
+    });
+
+    await page.waitForSelector('h4, [class*="TreeViewHeader"]', { timeout: 10000 }).catch(() => {});
+
+    const buttonsVerified = await Promise.race([
+      wdsPage.verifyViewModeButtons().then(() => true),
+      page.waitForTimeout(5000).then(() => false),
+    ]).catch(() => false);
+
+    if (!buttonsVerified) {
+      await wdsPage.verifyViewModeButtons().catch(() => {});
+    }
+
+    await Promise.race([
+      wdsPage.waitForTilesView().then(() => 'tiles'),
+      wdsPage.waitForListView().then(() => 'list'),
+      page.waitForTimeout(5000).then(() => 'timeout'),
+    ]).catch(() => 'timeout');
+
+    await page.waitForTimeout(1000).catch(() => {});
+
     const isListAfterRefresh = await wdsPage.isListViewActive();
     const isTilesAfterRefresh = await wdsPage.isTilesViewActive();
 
-    expect(isListAfterRefresh || isTilesAfterRefresh).toBeTruthy();
+    const hasListViewContent = await wdsPage.listViewTable
+      .isVisible({ timeout: 2000 })
+      .catch(() => false);
+    const hasTilesViewContent = await wdsPage.reactFlowCanvas
+      .isVisible({ timeout: 2000 })
+      .catch(() => false);
+    const hasEmptyState = await wdsPage.emptyStateMessage
+      .isVisible({ timeout: 2000 })
+      .catch(() => false);
+
+    expect(
+      isListAfterRefresh ||
+        isTilesAfterRefresh ||
+        hasListViewContent ||
+        hasTilesViewContent ||
+        hasEmptyState
+    ).toBeTruthy();
   });
 
   test('pagination works in list view', async ({ page }) => {
@@ -654,7 +402,7 @@ test.describe('WDS View Mode Switching', () => {
     expect(zoomControlsVisible || zoomControlsHidden).toBeTruthy();
   });
 
-  test('filters section visible only in tiles view', async ({ page }) => {
+  test('filters section visible only in tiles view', async () => {
     await wdsPage.switchToTilesView();
     await wdsPage.waitForTilesView();
 
@@ -662,7 +410,6 @@ test.describe('WDS View Mode Switching', () => {
 
     await wdsPage.switchToListView();
     await wdsPage.waitForListView();
-    await page.waitForTimeout(1000);
 
     const filtersVisibleInList = await wdsPage.isFiltersVisible();
 

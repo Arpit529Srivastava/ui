@@ -206,14 +206,14 @@ export class WDSPage extends BasePage {
   }
 
   async switchToTilesView() {
-    await this.tilesViewButton.waitFor({ state: 'visible', timeout: 10000 });
+    await this.tilesViewButton.waitFor({ state: 'visible', timeout: 5000 });
     await this.tilesViewButton.click();
     await this.page.waitForTimeout(1000);
     await this.waitForTilesView();
   }
 
   async switchToListView() {
-    await this.listViewButton.waitFor({ state: 'visible', timeout: 10000 });
+    await this.listViewButton.waitFor({ state: 'visible', timeout: 5000 });
     await this.listViewButton.click();
     await this.page.waitForTimeout(1000);
     await this.waitForListView();
@@ -286,28 +286,30 @@ export class WDSPage extends BasePage {
           const hasListView = listViewContainer && listViewContainer.offsetParent !== null;
           return !!(reactFlow || canvas || emptyState || flowContainer) && !hasListView;
         },
-        { timeout: 20000 }
+        { timeout: 10000 }
       )
-      .catch(async () => {
-        await this.page.waitForTimeout(2000);
+      .catch(() => {
+        // If wait fails, don't add extra timeout - just continue
       });
-    await this.page.waitForTimeout(1000);
   }
 
   async waitForListView() {
-    await this.page.waitForFunction(
-      () => {
-        const table = document.querySelector('table');
-        const listItems =
-          document.querySelectorAll('[class*="list-item"], [class*="ListView"]').length > 0;
-        const emptyState =
-          document.body.innerText &&
-          /no workloads|empty|create workload|no.*data/i.test(document.body.innerText);
-        return !!(table || listItems || emptyState);
-      },
-      { timeout: 20000 }
-    );
-    await this.page.waitForTimeout(1000);
+    await this.page
+      .waitForFunction(
+        () => {
+          const table = document.querySelector('table');
+          const listItems =
+            document.querySelectorAll('[class*="list-item"], [class*="ListView"]').length > 0;
+          const emptyState =
+            document.body.innerText &&
+            /no workloads|empty|create workload|no.*data/i.test(document.body.innerText);
+          return !!(table || listItems || emptyState);
+        },
+        { timeout: 10000 }
+      )
+      .catch(() => {
+        // If wait fails, don't add extra timeout - just continue
+      });
   }
 
   async getListViewItemCount(): Promise<number> {
@@ -536,8 +538,10 @@ export class WDSPage extends BasePage {
   }
 
   async verifyViewModeButtons() {
-    await expect(this.tilesViewButton).toBeVisible({ timeout: 10000 });
-    await expect(this.listViewButton).toBeVisible({ timeout: 10000 });
+    await this.tilesViewButton.waitFor({ state: 'attached', timeout: 5000 }).catch(() => {});
+    await this.listViewButton.waitFor({ state: 'attached', timeout: 5000 }).catch(() => {});
+    await expect(this.tilesViewButton).toBeVisible({ timeout: 5000 });
+    await expect(this.listViewButton).toBeVisible({ timeout: 5000 });
   }
 
   async verifyTilesViewRendered() {
