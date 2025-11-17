@@ -316,7 +316,9 @@ export class ReactFlowHelper {
       await zoomDisplay.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
     }
 
-    await this.page.waitForTimeout(browserName === 'webkit' ? 150 : browserName === 'chromium' ? 50 : 100);
+    await this.page.waitForTimeout(
+      browserName === 'webkit' ? 150 : browserName === 'chromium' ? 50 : 100
+    );
   }
 
   async waitForReactFlowWithZoomControls(browserName: string = 'chromium'): Promise<void> {
@@ -467,12 +469,15 @@ export class ReactFlowHelper {
       await this.waitForZoomControls(browserName);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      if ((errorMessage.includes('closed') || errorMessage.includes('Target')) && browserName === 'webkit') {
+      if (
+        (errorMessage.includes('closed') || errorMessage.includes('Target')) &&
+        browserName === 'webkit'
+      ) {
         return;
       }
       throw error;
     }
-    
+
     try {
       if (browserName === 'webkit') {
         await this.page.waitForTimeout(500);
@@ -605,7 +610,10 @@ export class ReactFlowHelper {
                 uid: 'svc-uid-1',
               },
               spec: {
-                ports: [{ name: 'http', port: 80 }, { name: 'https', port: 443 }],
+                ports: [
+                  { name: 'http', port: 80 },
+                  { name: 'https', port: 443 },
+                ],
                 selector: { app: 'api' },
               },
               status: { loadBalancer: {} },
@@ -779,4 +787,3 @@ export class ReactFlowHelper {
     ];
   }
 }
-
