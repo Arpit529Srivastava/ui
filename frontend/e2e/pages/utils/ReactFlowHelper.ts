@@ -26,17 +26,6 @@ export class ReactFlowHelper {
     }
   }
 
-  private async checkPageClosureForWebkit(browserName: string): Promise<boolean> {
-    const isOpen = await this.isPageOpen();
-    if (!isOpen) {
-      if (browserName === 'webkit') {
-        return false;
-      }
-      throw new Error('Page was closed');
-    }
-    return true;
-  }
-
   async injectNamespaceData(data: MockNamespaceData[]): Promise<void> {
     await this.page.evaluate(mockData => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,14 +33,8 @@ export class ReactFlowHelper {
     }, data);
   }
 
-  private static readonly WEBSOCKET_HANDLER_SETUP_DELAY = 150;
-
   async setupWebSocketMock(config: WebSocketMockConfig = {}): Promise<void> {
-    const {
-      namespaceData,
-      endpoint = '/ws/namespaces',
-      delay = ReactFlowHelper.WEBSOCKET_HANDLER_SETUP_DELAY,
-    } = config;
+    const { namespaceData, endpoint = '/ws/namespaces', delay = 150 } = config;
     const mockData = namespaceData || [];
 
     await this.page.addInitScript(
@@ -110,6 +93,7 @@ export class ReactFlowHelper {
               });
 
               if (shouldMock && data && data.length > 0) {
+                const handlerSetupDelay = 150;
                 setTimeout(() => {
                   if (this.readyState === this.OPEN) {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -158,7 +142,7 @@ export class ReactFlowHelper {
                       console.warn('[MockWebSocket] No mock data to send for', urlString);
                     }
                   }
-                }, ReactFlowHelper.WEBSOCKET_HANDLER_SETUP_DELAY);
+                }, handlerSetupDelay);
               } else if (shouldMock) {
                 console.warn('[MockWebSocket] Should mock but no data provided for', urlString);
               }
@@ -274,12 +258,19 @@ export class ReactFlowHelper {
         return false;
       }
       await this.page.waitForTimeout(2000);
-
-      const stillOpen = await this.isPageOpen();
-      if (!stillOpen) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('closed') || errorMessage.includes('Target')) {
         return false;
       }
+      throw error;
+    }
 
+    try {
+      const isOpen = await this.isPageOpen();
+      if (!isOpen) {
+        return false;
+      }
       return await this.page
         .locator('.react-flow, [class*="react-flow"]')
         .isVisible({ timeout: 5000 })
@@ -325,9 +316,7 @@ export class ReactFlowHelper {
       await zoomDisplay.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
     }
 
-    await this.page.waitForTimeout(
-      browserName === 'webkit' ? 150 : browserName === 'chromium' ? 50 : 100
-    );
+    await this.page.waitForTimeout(browserName === 'webkit' ? 150 : browserName === 'chromium' ? 50 : 100);
   }
 
   async waitForReactFlowWithZoomControls(browserName: string = 'chromium'): Promise<void> {
@@ -386,14 +375,22 @@ export class ReactFlowHelper {
       throw error;
     }
 
-    if (!(await this.checkPageClosureForWebkit(browserName))) {
-      return;
+    const stillOpen = await this.isPageOpen();
+    if (!stillOpen) {
+      if (browserName === 'webkit') {
+        return;
+      }
+      throw new Error('Page was closed before ensuring tiles view');
     }
 
     await this.ensureTilesView();
 
-    if (!(await this.checkPageClosureForWebkit(browserName))) {
-      return;
+    const stillOpenBeforeWait = await this.isPageOpen();
+    if (!stillOpenBeforeWait) {
+      if (browserName === 'webkit') {
+        return;
+      }
+      throw new Error('Page was closed before waiting for ReactFlow');
     }
 
     try {
@@ -408,8 +405,12 @@ export class ReactFlowHelper {
         throw error;
       }
 
-      if (!(await this.checkPageClosureForWebkit(browserName))) {
-        return;
+      const isStillOpen = await this.isPageOpen();
+      if (!isStillOpen) {
+        if (browserName === 'webkit') {
+          return;
+        }
+        throw new Error('Page was closed during ReactFlow wait');
       }
 
       try {
@@ -466,15 +467,12 @@ export class ReactFlowHelper {
       await this.waitForZoomControls(browserName);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      if (
-        (errorMessage.includes('closed') || errorMessage.includes('Target')) &&
-        browserName === 'webkit'
-      ) {
+      if ((errorMessage.includes('closed') || errorMessage.includes('Target')) && browserName === 'webkit') {
         return;
       }
       throw error;
     }
-
+    
     try {
       if (browserName === 'webkit') {
         await this.page.waitForTimeout(500);
@@ -607,10 +605,7 @@ export class ReactFlowHelper {
                 uid: 'svc-uid-1',
               },
               spec: {
-                ports: [
-                  { name: 'http', port: 80 },
-                  { name: 'https', port: 443 },
-                ],
+                ports: [{ name: 'http', port: 80 }, { name: 'https', port: 443 }],
                 selector: { app: 'api' },
               },
               status: { loadBalancer: {} },
@@ -784,3 +779,4 @@ export class ReactFlowHelper {
     ];
   }
 }
+
