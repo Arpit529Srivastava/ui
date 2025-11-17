@@ -163,7 +163,7 @@ export class WecsPage extends BasePage {
     await this.page.waitForFunction(
       () => {
         const heading = Array.from(document.querySelectorAll('h1,h2,h3,h4')).some(el =>
-          /Remote-Cluster Treeview/i.test(el.textContent || '')
+          /remote-?cluster treeview/i.test(el.textContent || '')
         );
         if (!heading) return false;
         const hasSkeleton = document.querySelector('[class*="Skeleton"]');
