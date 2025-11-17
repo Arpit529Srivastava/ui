@@ -196,6 +196,7 @@ func DeployFromArtifactHub(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid packageId format. Expected format: repo/org/chartname"})
 		return
 	}
+	// print the parts
 
 	repoType := parts[0]
 	orgName := parts[1]
