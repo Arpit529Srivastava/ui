@@ -1,280 +1,202 @@
 import { test, expect } from '@playwright/test';
-
-const BASE = 'http://localhost:5173';
+import { AuthHelper, ITSPage, MSWHelper } from './pages';
 
 test.describe('ITS Table Features Tests', () => {
+  let itsPage: ITSPage;
+  let auth: AuthHelper;
+  let msw: MSWHelper;
+
   test.beforeEach(async ({ page }) => {
-    // Login
-    await page.goto(`${BASE}/login`);
-    await page.getByRole('textbox', { name: 'Username' }).fill('admin');
-    await page.getByRole('textbox', { name: 'Password' }).fill('admin');
-    await page.getByRole('button', { name: /Sign In/i }).click();
-    await expect(page).toHaveURL('/', { timeout: 10000 });
-
-    // Apply MSW success scenario for table features
-    await page.evaluate(() => {
-      if (window.__msw) {
-        window.__msw.applyScenarioByName('itsSuccess');
-      }
-    });
-
-    // Navigate to ITS page
-    await page.goto(`${BASE}/its`);
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('table').first()).toBeVisible({ timeout: 15000 });
+    auth = new AuthHelper(page);
+    itsPage = new ITSPage(page);
+    msw = new MSWHelper(page);
+    await auth.loginAsAdmin();
+    await itsPage.openWithScenario(msw, 'itsSuccess');
   });
 
-  test('table headers display correctly', async ({ page }) => {
-    // Check for table headers
-    const headers = page.locator('thead th, thead td');
-    const headerCount = await headers.count();
+  test('table headers display correctly', async () => {
+    const headerCount = await itsPage.tableHeaders.count();
     expect(headerCount).toBeGreaterThan(0);
 
-    // Common expected headers
     const expectedHeaders = ['Name', 'Status', 'Labels', 'Created', 'Actions'];
     for (const header of expectedHeaders) {
-      const headerElement = page.locator(`text=${header}`).first();
+      const headerElement = itsPage.tableHeaders
+        .filter({ hasText: new RegExp(header, 'i') })
+        .first();
       if (await headerElement.isVisible()) {
         await expect(headerElement).toBeVisible();
       }
     }
   });
 
-  test('table sorting works on sortable columns', async ({ page }) => {
-    // Look for sortable column headers (usually have arrows or are clickable)
-    const sortableHeaders = page.locator(
-      'thead th[role="button"], thead th[class*="sortable"], thead th button'
-    );
+  test('table sorting works on sortable columns', async () => {
+    const sortableHeaders = itsPage.sortableHeaders;
     const sortableCount = await sortableHeaders.count();
 
     if (sortableCount > 0) {
-      // Click first sortable header
       await sortableHeaders.first().click();
-      await page.waitForTimeout(1000);
+      await itsPage.page.waitForTimeout(1000);
 
-      // Check if sort indicator appeared
-      const sortIndicator = page.locator('[class*="sort"], [aria-sort]').first();
+      const sortIndicator = itsPage.sortIndicators.first();
       if (await sortIndicator.isVisible()) {
         await expect(sortIndicator).toBeVisible();
       }
 
-      // Click again to reverse sort
       await sortableHeaders.first().click();
-      await page.waitForTimeout(1000);
+      await itsPage.page.waitForTimeout(1000);
     }
   });
 
-  test('table pagination works with many clusters', async ({ page }) => {
-    // Apply MSW scenario for paginated clusters
-    await page.evaluate(() => {
-      if (window.__msw) {
-        window.__msw.applyScenarioByName('itsPagination');
-      }
-    });
+  test('table pagination works with many clusters', async () => {
+    await itsPage.openWithScenario(msw, 'itsPagination');
+    await expect(itsPage.table.first()).toBeVisible({ timeout: 15000 });
 
-    await expect(page.locator('table').first()).toBeVisible({ timeout: 15000 });
-
-    // Should show pagination controls
-    const paginationControls = page.locator('[class*="pagination"], [role="navigation"]');
+    const paginationControls = itsPage.paginationControls;
     if (await paginationControls.first().isVisible()) {
       await expect(paginationControls.first()).toBeVisible();
 
-      // Look for next/previous buttons
-      const nextButton = page
+      const nextButton = itsPage.page
         .getByRole('button')
         .filter({ hasText: /next|>/i })
         .first();
-      const prevButton = page
+      const prevButton = itsPage.page
         .getByRole('button')
         .filter({ hasText: /prev|</i })
         .first();
 
       if ((await nextButton.isVisible()) && (await nextButton.isEnabled())) {
         await nextButton.click();
-        await page.waitForTimeout(1000);
+        await itsPage.page.waitForTimeout(1000);
+        await expect(itsPage.page.locator('text=cluster-11')).toBeVisible({ timeout: 5000 });
 
-        // Should show different clusters
-        await expect(page.locator('text=cluster-11')).toBeVisible({ timeout: 5000 });
-
-        // Previous button should now be enabled
         if ((await prevButton.isVisible()) && (await prevButton.isEnabled())) {
           await prevButton.click();
-          await page.waitForTimeout(1000);
-
-          // Should go back to first page
-          await expect(page.locator('text=cluster-1')).toBeVisible({ timeout: 5000 });
+          await itsPage.page.waitForTimeout(1000);
+          await expect(itsPage.page.locator('text=cluster-1')).toBeVisible({ timeout: 5000 });
         }
       } else {
-        // If pagination is disabled, just verify we have the expected clusters
-        await expect(page.locator('tbody tr')).toHaveCount(2); // Only 2 clusters from MSW mock
+        await expect(itsPage.tableRows).toHaveCount(2);
       }
     }
   });
 
-  test('table row selection persists across actions', async ({ page }) => {
-    // Select first cluster
-    const checkboxes = page.locator('tbody input[type="checkbox"]');
+  test('table row selection persists across actions', async () => {
+    const checkboxes = itsPage.rowCheckboxes;
     const checkboxCount = await checkboxes.count();
 
     if (checkboxCount > 0) {
       await checkboxes.first().check();
       await expect(checkboxes.first()).toBeChecked();
 
-      // Perform search to filter table
-      const searchInput = page.locator('input[type="text"]').first();
+      const searchInput = itsPage.searchInput;
       await searchInput.fill('cluster1');
-      await page.waitForTimeout(1000);
-
-      // Clear search
+      await itsPage.page.waitForTimeout(1000);
       await searchInput.clear();
-      await page.waitForTimeout(1000);
+      await itsPage.page.waitForTimeout(1000);
 
-      // Selection should persist
       await expect(checkboxes.first()).toBeChecked();
     }
   });
 
-  test('table displays empty state when no results', async ({ page }) => {
-    // Search for non-existent cluster
-    const searchInput = page.locator('input[type="text"]').first();
+  test('table displays empty state when no results', async () => {
+    const searchInput = itsPage.searchInput;
     await searchInput.fill('nonexistent-cluster-xyz');
-    await page.waitForTimeout(1000);
+    await itsPage.page.waitForTimeout(1000);
 
-    // Should show empty state
-    const emptyState = page.locator('text=/no clusters|no results|empty/i').first();
+    const emptyState = itsPage.emptyState;
     if (await emptyState.isVisible()) {
       await expect(emptyState).toBeVisible();
     } else {
-      // Or table should have no rows
-      const rows = page.locator('tbody tr');
-      await expect(rows).toHaveCount(0);
+      await expect(itsPage.tableRows).toHaveCount(0);
     }
   });
 
-  test('table loading state displays during data fetch', async ({ page }) => {
-    // Apply MSW scenario for delayed loading
-    await page.evaluate(() => {
-      if (window.__msw) {
-        window.__msw.applyScenarioByName('itsLoading');
-      }
-    });
+  test('table loading state displays during data fetch', async () => {
+    await itsPage.openWithScenario(msw, 'itsLoading');
 
-    // Should show loading indicator
     try {
-      const loadingIndicator = page.locator('[class*="loading"], [class*="spinner"]').first();
+      const loadingIndicator = itsPage.loadingIndicators.first();
       await expect(loadingIndicator).toBeVisible({ timeout: 2000 });
     } catch {
-      // Fallback: check for loading text
-      const loadingText = page.locator('text=/loading/i').first();
+      const loadingText = itsPage.page.locator('text=/loading/i').first();
       if (await loadingText.isVisible({ timeout: 1000 })) {
         await expect(loadingText).toBeVisible();
       }
     }
 
-    // Eventually should show data
-    await expect(page.locator('table').first()).toBeVisible({ timeout: 10000 });
+    await expect(itsPage.table.first()).toBeVisible({ timeout: 10000 });
   });
 
-  test('table columns are resizable', async ({ page }) => {
-    // Look for resizable column headers
-    const resizeHandles = page.locator('[class*="resize"], th[style*="resize"]');
+  test('table columns are resizable', async () => {
+    const resizeHandles = itsPage.resizeHandles;
     const handleCount = await resizeHandles.count();
 
     if (handleCount > 0) {
-      // Try to resize first column
       const firstHandle = resizeHandles.first();
       const box = await firstHandle.boundingBox();
 
       if (box) {
-        // Drag to resize
-        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-        await page.mouse.down();
-        await page.mouse.move(box.x + 50, box.y + box.height / 2);
-        await page.mouse.up();
-
-        // Column should be resized (hard to test exact width, but action should complete)
-        await page.waitForTimeout(500);
+        await itsPage.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await itsPage.page.mouse.down();
+        await itsPage.page.mouse.move(box.x + 50, box.y + box.height / 2);
+        await itsPage.page.mouse.up();
+        await itsPage.page.waitForTimeout(500);
       }
     }
   });
 
-  test('table supports keyboard navigation', async ({ page }) => {
-    // Focus on table
-    await page.locator('table').first().focus();
+  test('table supports keyboard navigation', async () => {
+    await itsPage.table.first().focus();
+    await itsPage.page.keyboard.press('ArrowDown');
+    await itsPage.page.waitForTimeout(200);
+    await itsPage.page.keyboard.press('ArrowUp');
+    await itsPage.page.waitForTimeout(200);
+    await itsPage.page.keyboard.press('Tab');
+    await itsPage.page.waitForTimeout(200);
 
-    // Try arrow key navigation
-    await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(200);
-
-    await page.keyboard.press('ArrowUp');
-    await page.waitForTimeout(200);
-
-    // Try tab navigation
-    await page.keyboard.press('Tab');
-    await page.waitForTimeout(200);
-
-    // Should navigate through focusable elements
-    const focusedElement = page.locator(':focus');
+    const focusedElement = itsPage.page.locator(':focus');
     if (await focusedElement.isVisible()) {
       await expect(focusedElement).toBeVisible();
     }
   });
 
-  test('table context menu works on right click', async ({ page }) => {
-    // Right click on table row
-    const firstRow = page.locator('tbody tr').first();
+  test('table context menu works on right click', async () => {
+    const firstRow = itsPage.tableRows.first();
     await firstRow.click({ button: 'right' });
-    await page.waitForTimeout(500);
+    await itsPage.page.waitForTimeout(500);
 
-    // Check if context menu appeared
-    const contextMenu = page.locator('[role="menu"], [class*="context"]').first();
+    const contextMenu = itsPage.contextMenu.first();
     if (await contextMenu.isVisible()) {
       await expect(contextMenu).toBeVisible();
-
-      // Close context menu
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await itsPage.page.keyboard.press('Escape');
+      await itsPage.page.waitForTimeout(300);
     }
   });
 
-  test('table row hover effects work', async ({ page }) => {
-    // Hover over first row
-    const firstRow = page.locator('tbody tr').first();
+  test('table row hover effects work', async () => {
+    const firstRow = itsPage.tableRows.first();
     await firstRow.hover();
-    await page.waitForTimeout(300);
+    await itsPage.page.waitForTimeout(300);
 
-    // Row should have hover state (visual change)
     const rowClasses = await firstRow.getAttribute('class');
     const rowStyle = await firstRow.getAttribute('style');
-
-    // Should have some hover indication (class or style change)
     expect(rowClasses || rowStyle).toBeTruthy();
   });
 
-  test('table column visibility can be toggled', async ({ page }) => {
-    // Look for column visibility controls
-    const columnToggle = page
-      .getByRole('button')
-      .filter({ hasText: /columns|view|show/i })
-      .first();
+  test('table column visibility can be toggled', async () => {
+    const columnToggle = itsPage.columnToggleButton;
 
     if (await columnToggle.isVisible()) {
       await columnToggle.click();
-      await page.waitForTimeout(500);
+      await itsPage.page.waitForTimeout(500);
 
-      // Should show column options
-      const columnOptions = page.locator('[role="menuitem"], [type="checkbox"]');
+      const columnOptions = itsPage.columnOptions;
       const optionCount = await columnOptions.count();
 
       if (optionCount > 0) {
-        // Toggle first column option
         await columnOptions.first().click();
-        await page.waitForTimeout(500);
-
-        // Column visibility should change
-        const headers = page.locator('thead th');
-        const headerCount = await headers.count();
-        expect(headerCount).toBeGreaterThan(0);
+        await itsPage.page.waitForTimeout(500);
+        expect(await itsPage.columnHeaders.count()).toBeGreaterThan(0);
       }
     }
   });
