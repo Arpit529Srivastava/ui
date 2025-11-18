@@ -135,7 +135,38 @@ export class UserManagementPage extends BasePage {
   async setRoleFilter(role: 'all' | 'admin' | 'user') {
     await this.openFilters();
     await this.roleFilter.click();
-    await this.page.getByText(role, { exact: true }).click();
+
+    const optionByValue = this.page.locator(`[data-dropdown-option="${role}"]`).first();
+    if (await optionByValue.count()) {
+      await optionByValue.click();
+      return;
+    }
+
+    const roleLabelMap: Record<'all' | 'admin' | 'user', string> = {
+      all: 'All Roles',
+      admin: 'Admin',
+      user: 'User',
+    };
+
+    await this.page.getByRole('button', { name: roleLabelMap[role], exact: false }).first().click();
+  }
+
+  async setPermissionFilter(permission: string) {
+    await this.openFilters();
+    await this.permissionFilter.click();
+    await this.page.locator(`[data-dropdown-option="${permission}"]`).first().click();
+  }
+
+  async setPermissionLevelFilter(level: 'read' | 'write') {
+    await this.openFilters();
+    await this.permissionLevelFilter.click();
+    await this.page.locator(`[data-dropdown-option="${level}"]`).first().click();
+  }
+
+  async setSortByFilter(sortBy: string) {
+    await this.openFilters();
+    await this.sortByFilter.click();
+    await this.page.locator(`[data-dropdown-option="${sortBy}"]`).first().click();
   }
 
   async clearFilters() {

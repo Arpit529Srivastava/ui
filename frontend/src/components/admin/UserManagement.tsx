@@ -32,6 +32,7 @@ const CustomDropdown = ({
   disabled,
   isDark,
   style,
+  testId,
 }: {
   options: { value: string; label: string; color?: string }[];
   value: string | null;
@@ -40,6 +41,7 @@ const CustomDropdown = ({
   disabled?: boolean;
   isDark: boolean;
   style?: React.CSSProperties;
+  testId?: string;
 }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -68,6 +70,7 @@ const CustomDropdown = ({
         }}
         onClick={() => !disabled && setOpen(v => !v)}
         disabled={disabled}
+        data-testid={testId}
       >
         {selected?.color && (
           <span className="mr-2 h-2 w-2 rounded-full" style={{ background: selected.color }} />
@@ -114,6 +117,7 @@ const CustomDropdown = ({
                     color: textColor,
                     background: bgColor,
                   }}
+                  data-dropdown-option={opt.value}
                   onMouseEnter={e =>
                     (e.currentTarget.style.background = isSelected ? bgColor : hoverBg)
                   }
@@ -752,7 +756,7 @@ const UserManagement = () => {
                       onChange={v => handleFilterChange('role', v)}
                       placeholder={t('admin.users.filters.role')}
                       isDark={isDark}
-                      data-testid="role-filter"
+                      testId="role-filter"
                     />
                   </div>
 
@@ -774,7 +778,7 @@ const UserManagement = () => {
                       onChange={v => handleFilterChange('permission', v || null)}
                       placeholder={t('admin.users.filters.permission')}
                       isDark={isDark}
-                      data-testid="permission-filter"
+                      testId="permission-filter"
                     />
                   </div>
 
@@ -793,7 +797,7 @@ const UserManagement = () => {
                       placeholder={t('admin.users.filters.permissionLevel')}
                       isDark={isDark}
                       disabled={!filters.permission}
-                      data-testid="permission-level-filter"
+                      testId="permission-level-filter"
                     />
                   </div>
 
