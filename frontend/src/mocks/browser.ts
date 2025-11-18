@@ -132,6 +132,20 @@ export const scenarios: Record<string, HttpHandler[]> = {
     h.k8sInfo,
   ],
 
+  // WECS tree view scenario
+  wecsSuccess: [
+    h.login,
+    h.me,
+    h.wecsTreeView,
+    h.wecsTreeViewRel,
+    h.clusterDetails,
+    h.getPods,
+    h.getDeployments,
+    h.getServices,
+    h.getNamespaces,
+    h.getClusterNamespaces,
+  ],
+
   // User Management specific scenario
   userManagement: [
     h.login,
