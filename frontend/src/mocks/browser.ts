@@ -146,6 +146,20 @@ export const scenarios: Record<string, HttpHandler[]> = {
     h.getClusterNamespaces,
   ],
 
+  // WDS context filtering scenario
+  wdsContextFiltering: [
+    h.statusReady,
+    h.statusReadyRel,
+    h.me,
+    h.workloads,
+    h.workloadsRel,
+    h.workloadStatus,
+    h.workloadStatusRel,
+    h.wdsGetContextAbsMultiple,
+    h.wdsGetContextMultiple,
+    h.wdsCreateContext,
+  ],
+
   // User Management specific scenario
   userManagement: [
     h.login,
