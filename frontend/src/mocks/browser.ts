@@ -142,6 +142,32 @@ export const scenarios: Record<string, HttpHandler[]> = {
     h.workloadStatusRel,
     h.wdsGetContextAbs,
     h.wdsGetContextRel,
+  // WECS tree view scenario
+  wecsSuccess: [
+    h.login,
+    h.me,
+    h.wecsTreeView,
+    h.wecsTreeViewRel,
+    h.clusterDetails,
+    h.getPods,
+    h.getDeployments,
+    h.getServices,
+    h.getNamespaces,
+    h.getClusterNamespaces,
+  ],
+
+  // WDS context filtering scenario
+  wdsContextFiltering: [
+    h.statusReady,
+    h.statusReadyRel,
+    h.me,
+    h.workloads,
+    h.workloadsRel,
+    h.workloadStatus,
+    h.workloadStatusRel,
+    h.wdsGetContextAbsMultiple,
+    h.wdsGetContextMultiple,
+    h.wdsCreateContext,
   ],
 
   // User Management specific scenario

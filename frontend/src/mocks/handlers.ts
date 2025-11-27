@@ -465,6 +465,330 @@ export const userActivities: HttpHandler = http.get('http://localhost:4000/api/a
   })
 );
 
+const wecsTreeData = [
+  {
+    cluster: 'its1-remote',
+    namespaces: [
+      {
+        namespace: 'app-space',
+        resourceTypes: [
+          {
+            kind: 'Deployment',
+            group: 'apps',
+            version: 'v1',
+            resources: [
+              {
+                name: 'nginx-gateway',
+                raw: {
+                  apiVersion: 'apps/v1',
+                  kind: 'Deployment',
+                  metadata: {
+                    name: 'nginx-gateway',
+                    namespace: 'app-space',
+                    creationTimestamp: '2025-02-10T10:00:00Z',
+                    labels: {
+                      app: 'nginx',
+                      tier: 'edge',
+                    },
+                  },
+                  spec: { replicas: 2 },
+                  status: { replicas: 2, readyReplicas: 2, availableReplicas: 2 },
+                },
+                replicaSets: [
+                  {
+                    name: 'nginx-gateway-rs',
+                    kind: 'ReplicaSet',
+                    raw: {
+                      apiVersion: 'apps/v1',
+                      kind: 'ReplicaSet',
+                      metadata: {
+                        name: 'nginx-gateway-rs',
+                        namespace: 'app-space',
+                        creationTimestamp: '2025-02-10T10:05:00Z',
+                      },
+                      status: { replicas: 2, readyReplicas: 2 },
+                    },
+                    pods: [
+                      {
+                        name: 'nginx-gateway-rs-abc123',
+                        kind: 'Pod',
+                        raw: {
+                          apiVersion: 'v1',
+                          kind: 'Pod',
+                          metadata: {
+                            name: 'nginx-gateway-rs-abc123',
+                            namespace: 'app-space',
+                            creationTimestamp: '2025-02-10T10:06:00Z',
+                            labels: { app: 'nginx', role: 'proxy' },
+                          },
+                          status: { phase: 'Running' },
+                        },
+                      },
+                      {
+                        name: 'nginx-gateway-rs-def456',
+                        kind: 'Pod',
+                        raw: {
+                          apiVersion: 'v1',
+                          kind: 'Pod',
+                          metadata: {
+                            name: 'nginx-gateway-rs-def456',
+                            namespace: 'app-space',
+                            creationTimestamp: '2025-02-10T10:06:30Z',
+                            labels: { app: 'nginx', role: 'proxy' },
+                          },
+                          status: { phase: 'Running' },
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            kind: 'Service',
+            group: 'core',
+            version: 'v1',
+            resources: [
+              {
+                name: 'gateway-service',
+                raw: {
+                  apiVersion: 'v1',
+                  kind: 'Service',
+                  metadata: {
+                    name: 'gateway-service',
+                    namespace: 'app-space',
+                    creationTimestamp: '2025-02-10T09:55:00Z',
+                    labels: { app: 'nginx' },
+                  },
+                  spec: {
+                    type: 'LoadBalancer',
+                    ports: [{ port: 80, targetPort: 8080 }],
+                  },
+                  status: { loadBalancer: {} },
+                },
+              },
+            ],
+          },
+          {
+            kind: 'ConfigMap',
+            group: 'core',
+            version: 'v1',
+            resources: [
+              {
+                name: 'gateway-config',
+                raw: {
+                  apiVersion: 'v1',
+                  kind: 'ConfigMap',
+                  metadata: {
+                    name: 'gateway-config',
+                    namespace: 'app-space',
+                    creationTimestamp: '2025-02-10T09:50:00Z',
+                  },
+                  data: { mode: 'active', retries: '3' },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        namespace: 'observability',
+        resourceTypes: [
+          {
+            kind: 'StatefulSet',
+            group: 'apps',
+            version: 'v1',
+            resources: [
+              {
+                name: 'loki-store',
+                raw: {
+                  apiVersion: 'apps/v1',
+                  kind: 'StatefulSet',
+                  metadata: {
+                    name: 'loki-store',
+                    namespace: 'observability',
+                    creationTimestamp: '2025-02-08T12:00:00Z',
+                    labels: { app: 'loki' },
+                  },
+                  spec: { replicas: 3 },
+                  status: { replicas: 3, readyReplicas: 3 },
+                },
+                pods: [
+                  {
+                    name: 'loki-store-0',
+                    kind: 'Pod',
+                    raw: {
+                      apiVersion: 'v1',
+                      kind: 'Pod',
+                      metadata: {
+                        name: 'loki-store-0',
+                        namespace: 'observability',
+                        creationTimestamp: '2025-02-08T12:05:00Z',
+                        labels: { app: 'loki' },
+                      },
+                      status: { phase: 'Running' },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            kind: 'CronJob',
+            group: 'batch',
+            version: 'v1',
+            resources: [
+              {
+                name: 'metrics-rollup',
+                raw: {
+                  apiVersion: 'batch/v1',
+                  kind: 'CronJob',
+                  metadata: {
+                    name: 'metrics-rollup',
+                    namespace: 'observability',
+                    creationTimestamp: '2025-02-09T08:00:00Z',
+                  },
+                  spec: { schedule: '*/30 * * * *' },
+                  status: { lastScheduleTime: '2025-02-10T10:30:00Z' },
+                },
+                replicaSets: [
+                  {
+                    name: 'metrics-rollup-428',
+                    kind: 'Job',
+                    raw: {
+                      apiVersion: 'batch/v1',
+                      kind: 'Job',
+                      metadata: {
+                        name: 'metrics-rollup-428',
+                        namespace: 'observability',
+                        creationTimestamp: '2025-02-10T10:30:00Z',
+                      },
+                      status: { succeeded: 1 },
+                    },
+                    pods: [
+                      {
+                        name: 'metrics-rollup-428-xyz',
+                        kind: 'Pod',
+                        raw: {
+                          apiVersion: 'v1',
+                          kind: 'Pod',
+                          metadata: {
+                            name: 'metrics-rollup-428-xyz',
+                            namespace: 'observability',
+                            creationTimestamp: '2025-02-10T10:30:10Z',
+                          },
+                          status: { phase: 'Succeeded' },
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    cluster: 'its2-remote',
+    namespaces: [
+      {
+        namespace: 'default',
+        resourceTypes: [
+          {
+            kind: 'Deployment',
+            group: 'apps',
+            version: 'v1',
+            resources: [
+              {
+                name: 'api-server',
+                raw: {
+                  apiVersion: 'apps/v1',
+                  kind: 'Deployment',
+                  metadata: {
+                    name: 'api-server',
+                    namespace: 'default',
+                    creationTimestamp: '2025-02-05T07:30:00Z',
+                    labels: { app: 'api', tier: 'backend' },
+                  },
+                  spec: { replicas: 1 },
+                  status: { replicas: 1, readyReplicas: 1 },
+                },
+                replicaSets: [
+                  {
+                    name: 'api-server-rs',
+                    kind: 'ReplicaSet',
+                    raw: {
+                      apiVersion: 'apps/v1',
+                      kind: 'ReplicaSet',
+                      metadata: {
+                        name: 'api-server-rs',
+                        namespace: 'default',
+                        creationTimestamp: '2025-02-05T07:35:00Z',
+                      },
+                      status: { replicas: 1, readyReplicas: 1 },
+                    },
+                    pods: [
+                      {
+                        name: 'api-server-rs-7dd8c9',
+                        kind: 'Pod',
+                        raw: {
+                          apiVersion: 'v1',
+                          kind: 'Pod',
+                          metadata: {
+                            name: 'api-server-rs-7dd8c9',
+                            namespace: 'default',
+                            creationTimestamp: '2025-02-05T07:36:00Z',
+                          },
+                          status: { phase: 'Running' },
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            kind: 'Service',
+            group: 'core',
+            version: 'v1',
+            resources: [
+              {
+                name: 'api-service',
+                raw: {
+                  apiVersion: 'v1',
+                  kind: 'Service',
+                  metadata: {
+                    name: 'api-service',
+                    namespace: 'default',
+                    creationTimestamp: '2025-02-05T07:32:00Z',
+                  },
+                  spec: {
+                    type: 'ClusterIP',
+                    ports: [{ port: 8080, targetPort: 8080 }],
+                  },
+                  status: {},
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
+
+export const wecsTreeView: HttpHandler = http.get('http://localhost:4000/api/wecs/treeview', () =>
+  HttpResponse.json(wecsTreeData)
+);
+
+export const wecsTreeViewRel: HttpHandler = http.get('/api/wecs/treeview', () =>
+  HttpResponse.json(wecsTreeData)
+);
+
 export const createUser: HttpHandler = http.post(
   'http://localhost:4000/api/admin/users',
   async ({ request }) => {
@@ -770,6 +1094,46 @@ export const wdsGetContextRel: HttpHandler = http.get('/wds/get/context', () =>
     'system-context': 'wds1',
     'other-wds-context': ['wds1', 'wds2'],
   })
+);
+
+// Context handlers with multiple contexts for filtering tests
+export const wdsGetContextMultiple: HttpHandler = http.get('/wds/get/context', () =>
+  HttpResponse.json({
+    'ui-wds-context': 'wds1',
+    'system-context': 'wds1',
+    'other-wds-context': ['wds1', 'wds2', 'wds3'],
+  })
+);
+
+export const wdsGetContextAbsMultiple: HttpHandler = http.get(
+  'http://localhost:4000/wds/get/context',
+  () =>
+    HttpResponse.json({
+      'ui-wds-context': 'wds1',
+      'system-context': 'wds1',
+      'other-wds-context': ['wds1', 'wds2', 'wds3'],
+    })
+);
+
+// Context creation success handler (WebSocket will be mocked in Playwright)
+export const wdsCreateContext: HttpHandler = http.get(
+  'http://localhost:4000/api/wds/context',
+  ({ request }) => {
+    const url = new URL(request.url);
+    const contextName = url.searchParams.get('context');
+    const version = url.searchParams.get('version') || '0.27.0';
+
+    if (!contextName) {
+      return HttpResponse.json({ error: 'Context name is required' }, { status: 400 });
+    }
+
+    return HttpResponse.json({
+      success: true,
+      message: `Context ${contextName} created successfully`,
+      context: contextName,
+      version: version,
+    });
+  }
 );
 
 // Relative status for Kubestellar install check
@@ -1086,10 +1450,13 @@ export const defaultHandlers: HttpHandler[] = [
   detachCluster,
   wdsGetContextAbs,
   wdsGetContextRel,
+  wdsCreateContext,
   getResourceKinds,
   getNamespaces,
   getPods,
   getDeployments,
   getServices,
   getClusterNamespaces,
+  wecsTreeView,
+  wecsTreeViewRel,
 ];

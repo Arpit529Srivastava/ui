@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
 
+// Interface for namespace data structure used in WebSocket mocks
 export interface MockNamespaceData {
   name: string;
   status: string;
@@ -26,6 +27,9 @@ export class ReactFlowHelper {
     }
   }
 
+// ReactFlow Helper for tests
+export class ReactFlowHelper {
+  constructor(private page: Page) {}
   async injectNamespaceData(data: MockNamespaceData[]): Promise<void> {
     await this.page.evaluate(mockData => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,6 +39,10 @@ export class ReactFlowHelper {
 
   async setupWebSocketMock(config: WebSocketMockConfig = {}): Promise<void> {
     const { namespaceData, endpoint = '/ws/namespaces', delay = 150 } = config;
+  // Setup WebSocket mock that sends namespace or WECS data
+  async setupWebSocketMock(config: WebSocketMockConfig = {}): Promise<void> {
+    const { namespaceData, endpoint = '/ws/namespaces', delay = 150 } = config;
+
     const mockData = namespaceData || [];
 
     await this.page.addInitScript(
@@ -58,6 +66,7 @@ export class ReactFlowHelper {
           OPEN = 1;
           CLOSING = 2;
           CLOSED = 3;
+
           private _eventListeners: Map<string, Set<EventListener>> = new Map();
           onopen: ((event: Event) => void) | null = null;
           onmessage: ((event: MessageEvent) => void) | null = null;
@@ -75,6 +84,7 @@ export class ReactFlowHelper {
 
             setTimeout(() => {
               this.readyState = this.OPEN;
+
               const openEvent = new Event('open');
               if (this.onopen) {
                 try {
@@ -179,6 +189,7 @@ export class ReactFlowHelper {
     );
   }
 
+  // Wait for ReactFlow container to be visible
   async waitForReactFlow(timeout: number = 15000): Promise<void> {
     await this.page.waitForSelector('.react-flow, [class*="react-flow"]', {
       state: 'visible',
@@ -186,6 +197,7 @@ export class ReactFlowHelper {
     });
   }
 
+  // Wait for ReactFlow to have nodes/edges rendered
   async waitForReactFlowNodes(timeout: number = 10000): Promise<boolean> {
     try {
       await this.page.waitForFunction(
@@ -203,6 +215,7 @@ export class ReactFlowHelper {
     }
   }
 
+  // Ensure we're in tiles/ReactFlow view
   async ensureTilesView(): Promise<boolean> {
     await this.page.waitForTimeout(500);
 
@@ -284,6 +297,14 @@ export class ReactFlowHelper {
     }
   }
 
+    await this.page.waitForTimeout(2000);
+    return await this.page
+      .locator('.react-flow, [class*="react-flow"]')
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
+  }
+
+  // Wait for zoom controls to be ready
   async waitForZoomControls(browserName: string = 'chromium'): Promise<void> {
     await this.waitForReactFlow(8000);
 
@@ -498,6 +519,73 @@ export class ReactFlowHelper {
     }
   }
 
+    await this.page.waitForTimeout(browserName === 'webkit' ? 150 : 100);
+  }
+
+  // Wait for ReactFlow to be ready with zoom controls
+  // Throws an error if ReactFlow doesn't appear
+  async waitForReactFlowWithZoomControls(browserName: string = 'chromium'): Promise<void> {
+    await this.page
+      .waitForFunction(
+        () => {
+          const loading = document.querySelector('[class*="loading"], [class*="skeleton"]');
+          const reactFlow = document.querySelector('.react-flow, [class*="react-flow"]');
+          const table = document.querySelector('table');
+          const emptyState = document.querySelector('[class*="empty"], [class*="Empty"]');
+
+          if (reactFlow) return true;
+          if (table) return false;
+          return !loading && !emptyState;
+        },
+        { timeout: 15000 }
+      )
+      .catch(() => {});
+
+    await this.page.waitForTimeout(2000);
+
+    await this.ensureTilesView();
+
+    try {
+      await this.waitForReactFlow(25000);
+    } catch {
+      const diagnosticInfo = await this.page.evaluate(() => {
+        const reactFlow = document.querySelector('.react-flow, [class*="react-flow"]');
+        const table = document.querySelector('table');
+        const loading = document.querySelector('[class*="loading"], [class*="skeleton"]');
+        const emptyState = document.querySelector('[class*="empty"], [class*="Empty"]');
+        const bodyText = document.body.textContent || '';
+        const hasError = bodyText.includes('error') || bodyText.includes('Error');
+
+        const buttons = Array.from(document.querySelectorAll('button'));
+        const viewButtons = buttons.filter(btn => {
+          const text = (btn.textContent || '').toLowerCase();
+          return /tiles?|list|view/i.test(text);
+        });
+
+        return {
+          hasReactFlow: !!reactFlow,
+          hasTable: !!table,
+          hasLoading: !!loading,
+          hasEmptyState: !!emptyState,
+          viewButtonsCount: viewButtons.length,
+          bodyTextLength: bodyText.length,
+          hasError,
+          url: window.location.href,
+        };
+      });
+
+      throw new Error(
+        `ReactFlow container did not appear within timeout. Diagnostic info: ${JSON.stringify(diagnosticInfo, null, 2)}. ` +
+          `This may indicate WebSocket data was not received, data format was incorrect, or component is still loading.`
+      );
+    }
+
+    await this.waitForZoomControls(browserName);
+
+    await this.page.waitForTimeout(1000);
+  }
+
+  // Get current zoom level from the display
   async getZoomLevel(): Promise<number> {
     const zoomDisplay = this.page.locator('text=/\\d+%/').first();
     const zoomText = await zoomDisplay.textContent();
@@ -505,6 +593,7 @@ export class ReactFlowHelper {
     return match ? parseInt(match[1], 10) : 100;
   }
 
+  // Wait for WDS page to be ready
   async waitForWDSPage(browserName: string = 'chromium'): Promise<void> {
     await this.page.waitForFunction(
       () => {
@@ -524,10 +613,12 @@ export class ReactFlowHelper {
     }
   }
 
+  // Wait for WECS page to be ready
   async waitForWECSPage(browserName: string = 'chromium'): Promise<void> {
     await this.waitForWDSPage(browserName);
   }
 
+  // Create default mock namespace data for testing
   static createDefaultNamespaceData(context: string = 'wds1'): MockNamespaceData[] {
     return [
       {
