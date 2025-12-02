@@ -215,7 +215,7 @@ export const HelmTab = ({
           </RadioGroup>
         </Box>
 
-        <Box sx={{ height: '55vh', overflow: 'visible', position: 'relative' }}>
+        <Box sx={{ height: '55vh', overflow: 'hidden' }}>
           {selectedOption === 'createOwn' ? (
             <CreateOwnHelmForm
               formData={formData}

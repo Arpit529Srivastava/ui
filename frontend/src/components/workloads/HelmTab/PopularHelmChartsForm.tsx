@@ -71,7 +71,7 @@ export const PopularHelmChartsForm = ({ handleChartSelection, theme, selectedCha
           display: 'flex',
           flexDirection: 'column',
           flex: 1,
-          overflow: 'visible',
+          overflow: 'hidden',
         }}
       >
         {/* Sticky Header */}
@@ -82,12 +82,11 @@ export const PopularHelmChartsForm = ({ handleChartSelection, theme, selectedCha
             top: 0,
             zIndex: 1,
             height: '55vh',
-            overflow: 'visible',
           }}
         >
           <Box>
             <Autocomplete
-              disablePortal={false}
+              disablePortal
               options={popularHelmCharts}
               onChange={(_, newValue) => handleChartSelection(newValue)}
               renderInput={params => (
@@ -133,11 +132,6 @@ export const PopularHelmChartsForm = ({ handleChartSelection, theme, selectedCha
                 mb: 2,
               }}
               slotProps={{
-                popper: {
-                  sx: {
-                    zIndex: 1500,
-                  },
-                },
                 popupIndicator: {
                   sx: {
                     color: theme === 'dark' ? '#d4d4d4' : '#666',
@@ -150,16 +144,8 @@ export const PopularHelmChartsForm = ({ handleChartSelection, theme, selectedCha
                 },
                 paper: {
                   sx: {
-                    backgroundColor: theme === 'dark' ? '#1e1e1e' : '#fff',
+                    backgroundColor: theme === 'dark' ? '#00000033' : '#fff',
                     color: theme === 'dark' ? '#d4d4d4' : '#333',
-                    boxShadow:
-                      theme === 'dark'
-                        ? '0px 8px 24px rgba(0, 0, 0, 0.5), 0px 0px 1px rgba(255, 255, 255, 0.1)'
-                        : '0px 8px 24px rgba(0, 0, 0, 0.15), 0px 0px 1px rgba(0, 0, 0, 0.1)',
-                    border:
-                      theme === 'dark'
-                        ? '1px solid rgba(255, 255, 255, 0.1)'
-                        : '1px solid rgba(0, 0, 0, 0.1)',
                     '& .MuiAutocomplete-option': {
                       '&:hover': {
                         backgroundColor: theme === 'dark' ? '#333' : 'rgba(25, 118, 210, 0.08)',
